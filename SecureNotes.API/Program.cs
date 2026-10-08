@@ -1,5 +1,7 @@
+
 using Microsoft.EntityFrameworkCore;
 using SecureNotes.Infrastructure.Persistence;
+
 namespace SecureNotes.API
 {
     public class Program
@@ -8,44 +10,29 @@ namespace SecureNotes.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+            // Rejestracja us³ug
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            
+
             builder.Services.AddPersistence(builder.Configuration);
 
             var app = builder.Build();
 
-            using (var scope = app.Services.CreateScope())
+            // Automatyczne migracje bazy danych
+            // Wy³¹cznie w œrodowisku Development
+            if (app.Environment.IsDevelopment())
             {
-                var dbContext = scope.ServiceProvider
-                    .GetRequiredService<PersistenceContext>();
-                var migrations = dbContext.Database.GetMigrations().ToList();
-
-                Console.WriteLine($"Liczba migracji: {migrations.Count}");
-
-                foreach (var migration in migrations)
+                using (var scope = app.Services.CreateScope())
                 {
-                    Console.WriteLine($"Migracja: {migration}");
-                }
-                try
-                {
+                    var dbContext = scope.ServiceProvider
+                        .GetRequiredService<PersistenceContext>();
+
                     await dbContext.Database.MigrateAsync();
-                    await dbContext.Database.OpenConnectionAsync();
-                    Console.WriteLine("MariaDB connection: True");
-                    await dbContext.Database.CloseConnectionAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
                 }
             }
 
-
-            // Configure the HTTP request pipeline.
+            // Konfiguracja HTTP
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -56,11 +43,9 @@ namespace SecureNotes.API
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
         }
-
     }
 }

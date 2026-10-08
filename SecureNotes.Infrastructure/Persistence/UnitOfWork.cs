@@ -20,3 +20,4 @@ namespace SecureNotes.Infrastructure.Persistence
         }
     }
 }
+
