@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureNotes.Infrastructure"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureNotes.API", "SecureNotes.API\SecureNotes.API.csproj", "{B4016324-2697-4791-9EBF-B2CA73624DC2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0118D1F6-08CC-42AF-99BD-77B608B6E1E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureNotes.Domain.Tests", "SecureNotes.Domain.Tests\SecureNotes.Domain.Tests.csproj", "{08C29F79-BF6D-48AC-9E73-21EBF23EA34B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +39,10 @@ Global
 		{B4016324-2697-4791-9EBF-B2CA73624DC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4016324-2697-4791-9EBF-B2CA73624DC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4016324-2697-4791-9EBF-B2CA73624DC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08C29F79-BF6D-48AC-9E73-21EBF23EA34B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08C29F79-BF6D-48AC-9E73-21EBF23EA34B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08C29F79-BF6D-48AC-9E73-21EBF23EA34B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08C29F79-BF6D-48AC-9E73-21EBF23EA34B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,6 +52,7 @@ Global
 		{7CB54397-B0F6-423D-BA38-9B6525CA3A39} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{C10A3B68-C1F1-41A1-A21D-0F141EA7419F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{B4016324-2697-4791-9EBF-B2CA73624DC2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{08C29F79-BF6D-48AC-9E73-21EBF23EA34B} = {0118D1F6-08CC-42AF-99BD-77B608B6E1E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C43FBE4-83A5-4EAD-B462-45DE596C7809}
