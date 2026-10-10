@@ -1,4 +1,7 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
+using SecureNotes.Application.Exceptions;
 using SecureNotes.Application.Interfaces.Persistence;
 
 namespace SecureNotes.Infrastructure.Persistence
@@ -15,9 +18,30 @@ namespace SecureNotes.Infrastructure.Persistence
         public async Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = default)
         {
-            return await _context.SaveChangesAsync(
-                cancellationToken);
+            try
+            {
+                return await _context.SaveChangesAsync(
+                    cancellationToken);
+            }
+            catch (DbUpdateException ex)
+                when (IsDuplicateEmailError(ex))
+            {
+                throw new DuplicateEmailException();
+            }
+        }
+
+        private static bool IsDuplicateEmailError(
+            DbUpdateException exception)
+        {
+            if (exception.InnerException is not MySqlException mysqlException)
+            {
+                return false;
+            }
+
+            return mysqlException.Number == 1062 &&
+                   mysqlException.Message.Contains(
+                       "IX_Users_Email",
+                       StringComparison.OrdinalIgnoreCase);
         }
     }
 }
-
