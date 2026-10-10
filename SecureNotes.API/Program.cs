@@ -35,6 +35,7 @@ namespace SecureNotes.API
 
             var app = builder.Build();
             app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseMiddleware<SecurityHeadersMiddleware>();
 
             // Automatyczne migracje bazy danych
             // Wy³¹cznie w œrodowisku Development

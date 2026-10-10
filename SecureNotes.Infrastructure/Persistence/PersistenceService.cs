@@ -63,6 +63,7 @@ namespace SecureNotes.Infrastructure.Persistence
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<RegisterService>();
             services.AddScoped<LoginService>();
+            services.AddScoped<NoteService>();
 
             services.AddScoped<IJwtTokenService, JwtTokenService>();
 
