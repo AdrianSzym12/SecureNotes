@@ -1,0 +1,81 @@
+﻿
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>SecureNotes</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-content">
+            <h1 class="logo">SecureNotes</h1>
+
+            <p class="header-description">
+                Twoje bezpieczne notatki
+            </p>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <p id="session-message"
+           class="form-message text-center"
+           role="status"
+           aria-live="polite"></p>
+
+        <!-- Widok dla niezalogowanego użytkownika -->
+        <section id="guest-section" class="card" hidden>
+            <h2>Witaj w SecureNotes</h2>
+
+            <p class="description">
+                Bezpieczne miejsce do tworzenia
+                i przechowywania Twoich notatek.
+            </p>
+
+            <p class="description">
+                Aby rozpocząć, zaloguj się
+                lub utwórz nowe konto.
+            </p>
+
+            <a class="btn btn-full" href="/login.html">
+                Zaloguj się
+            </a>
+
+            <p class="text-center description">
+                Nie masz jeszcze konta?
+                <a href="/register.html">Zarejestruj się</a>
+            </p>
+        </section>
+
+        <!-- Widok dla zalogowanego użytkownika -->
+        <section id="user-section" class="card" hidden>
+            <h2>Panel SecureNotes</h2>
+
+            <p id="user-message"
+               class="description"
+               role="status"
+               aria-live="polite"></p>
+
+            <p class="description">
+                Twoja sesja jest aktywna.
+                Wkrótce znajdziesz tutaj swoje notatki.
+            </p>
+
+            <button id="logout-button"
+                    type="button"
+                    class="btn btn-full">
+                Wyloguj się
+            </button>
+        </section>
+
+    </main>
+
+    <script type="module" src="/js/home.js"></script>
+</body>
+</html>

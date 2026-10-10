@@ -7,6 +7,8 @@ using SecureNotes.Application.Services;
 using Microsoft.Extensions.Options;
 using SecureNotes.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace SecureNotes.API.Controllers
 {
@@ -167,6 +169,28 @@ namespace SecureNotes.API.Controllers
             return Ok(new
             {
                 Token = tokens.RequestToken
+            });
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            Response.Headers.CacheControl = "no-store";
+
+            return Ok(new
+            {
+                UserId = userId
             });
         }
 
