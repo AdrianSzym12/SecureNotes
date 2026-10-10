@@ -2,8 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SecureNotes.Application.Interfaces.Security;
+using SecureNotes.Infrastructure.Security;
 using MySqlConnector;
 using SecureNotes.Application.Interfaces.Persistence;
+using SecureNotes.Application.Services;
 using SecureNotes.Domain.Repositories;
 using SecureNotes.Infrastructure.Configuration;
 using SecureNotes.Infrastructure.Persistence.Repositories;
@@ -51,6 +54,9 @@ namespace SecureNotes.Infrastructure.Persistence
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<INoteRepository, NoteRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<RegisterService>();
 
             return services;
         }

@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using SecureNotes.Infrastructure.Persistence;
+using SecureNotes.API.Middleware;
 
 namespace SecureNotes.API
 {
@@ -18,6 +19,7 @@ namespace SecureNotes.API
             builder.Services.AddPersistence(builder.Configuration);
 
             var app = builder.Build();
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             // Automatyczne migracje bazy danych
             // Wy³¹cznie w œrodowisku Development
