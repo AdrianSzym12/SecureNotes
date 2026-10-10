@@ -1,0 +1,103 @@
+﻿
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Rejestracja - SecureNotes</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-content">
+            <h1 class="logo">SecureNotes</h1>
+
+            <p class="header-description">
+                Twoje bezpieczne notatki
+            </p>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section class="card">
+            <h2>Utwórz konto</h2>
+
+            <p class="description">
+                Zarejestruj się, aby bezpiecznie
+                przechowywać swoje notatki.
+            </p>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="email">
+                        Adres e-mail
+                    </label>
+
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           autocomplete="username"
+                           maxlength="254"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        Hasło
+                    </label>
+
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           autocomplete="new-password"
+                           minlength="12"
+                           maxlength="128"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">
+                        Powtórz hasło
+                    </label>
+
+                    <input type="password"
+                           id="confirm-password"
+                           name="confirm-password"
+                           autocomplete="new-password"
+                           minlength="12"
+                           maxlength="128"
+                           required>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-full">
+                    Zarejestruj się
+                </button>
+
+                <p id="form-message"
+                   class="form-message"
+                   role="status"
+                   aria-live="polite"></p>
+            </form>
+
+            <p class="text-center description">
+                Masz już konto?
+                <a href="/login.html">
+                    Zaloguj się
+                </a>
+            </p>
+
+            <p class="text-center">
+                <a href="/">Powrót do strony głównej</a>
+            </p>
+        </section>
+    </main>
+
+    <script type="module" src="/js/auth.js"></script>
+
+</body>
+</html>
