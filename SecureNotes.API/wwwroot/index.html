@@ -3,79 +3,163 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>SecureNotes</title>
+    <title>SecureNotes - Twoja prywatna przestrzeń</title>
 
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+
+<body class="home-page">
+
     <header class="site-header">
         <div class="header-content">
-            <h1 class="logo">SecureNotes</h1>
 
-            <p class="header-description">
-                Twoje bezpieczne notatki
-            </p>
+            <a href="/" class="notes-brand">
+                <span class="brand-symbol">S</span>
+
+                <span class="brand-text">
+                    <strong>SecureNotes</strong>
+                    <small>Twoja prywatna przestrzeń</small>
+                </span>
+            </a>
+
+            <span class="header-description">
+                Twoje myśli. Twoja prywatność.
+            </span>
+
         </div>
     </header>
 
-    <main class="main-container">
+    <main class="home-container">
 
-        <p id="session-message"
-           class="form-message text-center"
-           role="status"
-           aria-live="polite"></p>
+        <section class="home-hero">
 
-        <!-- Widok dla niezalogowanego użytkownika -->
-        <section id="guest-section" class="card" hidden>
-            <h2>Witaj w SecureNotes</h2>
+            <span class="notes-eyebrow">
+                WITAJ W SECURENOTES
+            </span>
 
-            <p class="description">
-                Bezpieczne miejsce do tworzenia
-                i przechowywania Twoich notatek.
+            <h1>
+                Wszystkie Twoje notatki.
+                <span>Jedno bezpieczne miejsce.</span>
+            </h1>
+
+            <p class="home-lead">
+                Zapisuj pomysły, organizuj ważne informacje
+                i wracaj do nich, kiedy tylko potrzebujesz.
+                Twoje notatki są dostępne wyłącznie na Twoim koncie.
             </p>
 
-            <p class="description">
-                Aby rozpocząć, zaloguj się
-                lub utwórz nowe konto.
-            </p>
-
-            <a class="btn btn-full" href="/login.html">
-                Zaloguj się
-            </a>
-
-            <p class="text-center description">
-                Nie masz jeszcze konta?
-                <a href="/register.html">Zarejestruj się</a>
-            </p>
-        </section>
-
-        <!-- Widok dla zalogowanego użytkownika -->
-        <section id="user-section" class="card" hidden>
-            <h2>Panel SecureNotes</h2>
-
-            <p id="user-message"
-               class="description"
+            <p id="session-message"
+               class="form-message"
                role="status"
                aria-live="polite"></p>
 
-            <p class="description">
-                Twoja sesja jest aktywna.
-                Wkrótce znajdziesz tutaj swoje notatki.
-            </p>
+            <!-- Sekcja widoczna dla gościa -->
+            <section id="guest-section"
+                     class="home-session-panel"
+                     hidden>
 
-            <button id="logout-button"
-                    type="button"
-                    class="btn btn-full">
-                Wyloguj się
-            </button>
+                <h2>Zacznij korzystać z SecureNotes</h2>
+
+                <p>
+                    Zaloguj się lub utwórz konto,
+                    aby przejść do swoich prywatnych notatek.
+                </p>
+
+                <div class="home-actions">
+
+                    <a href="/login.html" class="btn">
+                        Zaloguj się →
+                    </a>
+
+                    <a href="/register.html"
+                       class="btn btn-outline">
+                        Utwórz konto
+                    </a>
+
+                </div>
+
+            </section>
+
+            <!-- Zachowujemy tę sekcję dla home.js -->
+            <section id="user-section"
+                     class="home-session-panel"
+                     hidden>
+
+                <h2>Przekierowywanie do notatek...</h2>
+
+                <p id="user-message"
+                   class="description"
+                   role="status"
+                   aria-live="polite"></p>
+
+                <p>
+                    Twoja sesja jest aktywna.
+                </p>
+
+                <div class="home-actions">
+                    <a href="/notes.html" class="btn">
+                        Otwórz moje notatki →
+                    </a>
+
+                    <button id="logout-button"
+                            type="button"
+                            class="btn btn-outline">
+                        Wyloguj się
+                    </button>
+                </div>
+
+            </section>
+
+        </section>
+
+        <section class="home-features"
+                 aria-label="Możliwości aplikacji">
+
+            <article class="home-feature-card">
+                <span class="feature-icon">✎</span>
+
+                <h3>Wygodne notatki</h3>
+
+                <p>
+                    Twórz, edytuj i porządkuj swoje zapiski
+                    w jednym miejscu.
+                </p>
+            </article>
+
+            <article class="home-feature-card">
+                <span class="feature-icon">♙</span>
+
+                <h3>Prywatne konto</h3>
+
+                <p>
+                    Każdy użytkownik ma dostęp wyłącznie
+                    do własnych notatek.
+                </p>
+            </article>
+
+            <article class="home-feature-card">
+                <span class="feature-icon">✓</span>
+
+                <h3>Ochrona danych</h3>
+
+                <p>
+                    Aplikacja wykorzystuje bezpieczną sesję
+                    i mechanizmy ochrony żądań.
+                </p>
+            </article>
+
         </section>
 
     </main>
 
+    <footer class="notes-footer">
+        SecureNotes · Twoje notatki, Twoja prywatność
+    </footer>
+
     <script type="module" src="/js/home.js"></script>
+
 </body>
 </html>

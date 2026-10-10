@@ -3,7 +3,6 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
@@ -11,27 +10,47 @@
 
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+
+<body class="auth-page">
+
     <header class="site-header">
         <div class="header-content">
-            <h1 class="logo">SecureNotes</h1>
 
-            <p class="header-description">
-                Twoje bezpieczne notatki
-            </p>
+            <a href="/" class="notes-brand">
+                <span class="brand-symbol">S</span>
+
+                <span class="brand-text">
+                    <strong>SecureNotes</strong>
+                    <small>Twoja prywatna przestrzeń</small>
+                </span>
+            </a>
+
+            <a href="/" class="notes-back-link">
+                ← Strona główna
+            </a>
+
         </div>
     </header>
 
-    <main class="main-container">
-        <section class="card">
-            <h2>Zaloguj się</h2>
+    <main class="auth-container">
 
-            <p class="description">
-                Wprowadź dane swojego konta,
-                aby uzyskać dostęp do notatek.
-            </p>
+        <section class="card auth-card">
+
+            <div class="auth-heading">
+                <span class="notes-eyebrow">
+                    WITAJ PONOWNIE
+                </span>
+
+                <h1>Zaloguj się</h1>
+
+                <p class="description">
+                    Wprowadź dane swojego konta,
+                    aby przejść do prywatnych notatek.
+                </p>
+            </div>
 
             <form id="login-form">
+
                 <div class="form-group">
                     <label for="email">
                         Adres e-mail
@@ -40,6 +59,7 @@
                     <input type="email"
                            id="email"
                            name="email"
+                           placeholder="twoj@email.pl"
                            autocomplete="username"
                            maxlength="254"
                            required>
@@ -53,32 +73,38 @@
                     <input type="password"
                            id="password"
                            name="password"
+                           placeholder="Wprowadź hasło"
                            autocomplete="current-password"
                            required>
                 </div>
 
                 <button type="submit"
                         class="btn btn-full">
-                    Zaloguj się
+                    Zaloguj się →
                 </button>
 
                 <p id="form-message"
                    class="form-message"
                    role="status"
                    aria-live="polite"></p>
+
             </form>
 
-            <p class="text-center description">
-                Nie masz konta?
-                <a href="/register.html">
-                    Zarejestruj się
-                </a>
-            </p>
+            <div class="auth-bottom">
+                <p>
+                    Nie masz jeszcze konta?
+                    <a href="/register.html">
+                        Zarejestruj się
+                    </a>
+                </p>
+            </div>
 
-            <p class="text-center">
-                <a href="/">Powrót do strony głównej</a>
-            </p>
         </section>
+
+        <p class="auth-caption">
+            SecureNotes · Twoje notatki, Twoja prywatność
+        </p>
+
     </main>
 
     <script type="module" src="/js/auth.js"></script>
