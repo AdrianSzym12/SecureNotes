@@ -1,7 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
-using SecureNotes.Infrastructure.Persistence;
+using SecureNotes.API.Extensions;
 using SecureNotes.API.Middleware;
+using SecureNotes.Infrastructure.Persistence;
 
 namespace SecureNotes.API
 {
@@ -12,11 +13,25 @@ namespace SecureNotes.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Rejestracja us³ug
-            builder.Services.AddControllers();
+            builder.Services.AddControllersWithViews();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddPersistence(builder.Configuration);
+            builder.Services.AddJwtAuthentication(builder.Configuration);
+
+
+            builder.Services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-CSRF-TOKEN";
+
+                options.Cookie.Name = "SecureNotes.Csrf";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Strict;
+                options.Cookie.Path = "/";
+            });
+
 
             var app = builder.Build();
             app.UseMiddleware<ErrorHandlingMiddleware>();
@@ -42,6 +57,8 @@ namespace SecureNotes.API
             }
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

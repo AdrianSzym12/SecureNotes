@@ -11,6 +11,7 @@ using SecureNotes.Domain.Repositories;
 using SecureNotes.Infrastructure.Configuration;
 using SecureNotes.Infrastructure.Persistence.Repositories;
 
+
 namespace SecureNotes.Infrastructure.Persistence
 {
     public static class PersistenceService
@@ -24,6 +25,7 @@ namespace SecureNotes.Infrastructure.Persistence
                 .Get<ApiConfiguration>()
                 ?? throw new InvalidOperationException(
                     "Api configuration not found.");
+
 
             if (string.IsNullOrWhiteSpace(config.Server) ||
                 string.IsNullOrWhiteSpace(config.Database) ||
@@ -51,12 +53,19 @@ namespace SecureNotes.Infrastructure.Persistence
                     new MariaDbServerVersion(
                         new Version(10, 4, 32))));
 
+            services.Configure<JwtConfiguration>(
+            configuration.GetSection("Jwt"));
+
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<INoteRepository, NoteRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<RegisterService>();
+            services.AddScoped<LoginService>();
+
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
+
 
             return services;
         }
