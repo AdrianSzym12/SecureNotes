@@ -1,36 +1,75 @@
 
+using Microsoft.EntityFrameworkCore;
+using SecureNotes.API.Extensions;
+using SecureNotes.API.Middleware;
+using SecureNotes.Infrastructure.Persistence;
+
 namespace SecureNotes.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // Rejestracja us³ug
+            builder.Services.AddControllersWithViews();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            var app = builder.Build();
+            builder.Services.AddPersistence(builder.Configuration);
+            builder.Services.AddJwtAuthentication(builder.Configuration);
 
-            // Configure the HTTP request pipeline.
+
+            builder.Services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-CSRF-TOKEN";
+
+                options.Cookie.Name = "SecureNotes.Csrf";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Strict;
+                options.Cookie.Path = "/";
+            });
+
+
+            var app = builder.Build();
+            app.UseMiddleware<ErrorHandlingMiddleware>();
+
+            app.UseMiddleware<SecurityHeadersMiddleware>();
+
+            
+            if (app.Environment.IsDevelopment())
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider
+                        .GetRequiredService<PersistenceContext>();
+
+                    await dbContext.Database.MigrateAsync();
+                }
+            }
+
+            // Konfiguracja HTTP
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
+
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
+
         }
     }
 }

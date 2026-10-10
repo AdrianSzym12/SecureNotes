@@ -1,0 +1,153 @@
+﻿
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Moje notatki - SecureNotes</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="notes-page">
+
+    <header class="site-header">
+        <div class="header-content">
+
+            <a class="notes-brand" href="/">
+                <span class="brand-symbol">S</span>
+
+                <span class="brand-text">
+                    <strong>SecureNotes</strong>
+                    <small>Prywatna przestrzeń</small>
+                </span>
+            </a>
+
+            <nav class="notes-navigation">
+                <a href="/" class="notes-back-link">
+                    ← Strona główna
+                </a>
+            </nav>
+
+        </div>
+    </header>
+
+    <main class="notes-container">
+
+        <section class="notes-intro">
+            <span class="notes-eyebrow">
+                TWOJA PRZESTRZEŃ
+            </span>
+
+            <h1>Moje notatki</h1>
+
+            <p>
+                Zapisuj ważne informacje, organizuj pomysły
+                i wracaj do nich w dowolnym momencie.
+            </p>
+        </section>
+
+        <p id="notes-message"
+           class="notes-message"
+           role="status"
+           aria-live="polite">
+        </p>
+
+        <section class="notes-create-panel">
+
+            <div class="notes-section-heading">
+                <div>
+                    <h2>Nowa notatka</h2>
+
+                    <p>
+                        Co chcesz dzisiaj zapisać?
+                    </p>
+                </div>
+            </div>
+
+            <form id="create-note-form">
+
+                <div class="notes-field">
+                    <label for="note-title">
+                        Tytuł
+                    </label>
+
+                    <input type="text"
+                           id="note-title"
+                           name="title"
+                           placeholder="Np. Pomysły na projekt"
+                           maxlength="150"
+                           required>
+                </div>
+
+                <div class="notes-field">
+                    <label for="note-content">
+                        Treść
+                    </label>
+
+                    <textarea id="note-content"
+                              name="content"
+                              placeholder="Tutaj możesz zapisać swoje pomysły, przemyślenia i ważne informacje..."
+                              maxlength="10000"
+                              rows="6"></textarea>
+                </div>
+
+                <div class="notes-form-footer">
+
+                    <span class="notes-helper">
+                        Twoje notatki są prywatne.
+                    </span>
+
+                    <button type="submit" class="btn">
+                        + Dodaj notatkę
+                    </button>
+
+                </div>
+
+            </form>
+        </section>
+
+        <section class="notes-saved-section">
+
+            <div class="notes-section-heading">
+                <div>
+                    <span class="notes-eyebrow">
+                        TWOJE ZAPISKI
+                    </span>
+
+                    <h2>Zapisane notatki</h2>
+
+                    <p>
+                        Przeglądaj i zarządzaj swoimi notatkami.
+                    </p>
+                </div>
+            </div>
+
+            <div id="notes-empty" class="notes-empty-state" hidden>
+                <span class="notes-empty-symbol">✎</span>
+
+                <h3>Jeszcze nie masz notatek</h3>
+
+                <p>
+                    Utwórz pierwszą notatkę za pomocą
+                    formularza powyżej.
+                </p>
+            </div>
+
+            <div id="notes-list" class="notes-grid"></div>
+
+        </section>
+
+    </main>
+
+    <footer class="notes-footer">
+        SecureNotes · Twoje notatki, Twoja prywatność
+    </footer>
+
+    <script type="module" src="/js/notes.js"></script>
+
+</body>
+</html>
