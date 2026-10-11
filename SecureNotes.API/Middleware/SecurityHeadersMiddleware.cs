@@ -39,6 +39,12 @@ namespace SecureNotes.API.Middleware
                     "object-src 'none'; " +
                     "frame-ancestors 'none'";
 
+                
+                if (context.Request.Path.StartsWithSegments("/api"))
+                {
+                    headers["Cache-Control"] = "no-store";
+                }
+
                 return Task.CompletedTask;
             });
 
