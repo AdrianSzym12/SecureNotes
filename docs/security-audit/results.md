@@ -21,8 +21,8 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 | AUTH-02 | Dostęp do /api/auth/me bez sesji | HTTP 401 | HTTP 401 Unauthorized | PASS |
 | AUTH-03 | Dostęp do notatek po logowaniu | HTTP 200 | HTTP 200 OK | PASS |
 | AUTH-04 | Dostęp do notatek po wylogowaniu | HTTP 401 | HTTP 401 Unauthorized | PASS |
-| IDOR-01 | Odczyt cudzej notatki | HTTP 404 | Do sprawdzenia | NOT RUN |
-| IDOR-02 | Edycja cudzej notatki | HTTP 404, brak zmiany danych | Do sprawdzenia | NOT RUN |
+| IDOR-01 | Odczyt cudzej notatki | HTTP 404 | HTTP 404 Not Found | PASS |
+| IDOR-02 | Edycja cudzej notatki | HTTP 404, brak zmiany danych | HTTP 404, notatka niezmieniona | PASS |
 | IDOR-03 | Usunięcie cudzej notatki | HTTP 404, notatka nadal istnieje | Do sprawdzenia | NOT RUN |
 | CSRF-01 | Brak tokenu CSRF | HTTP 400 | Do sprawdzenia | NOT RUN |
 | CSRF-02 | Nieprawidłowy token CSRF | HTTP 400 | Do sprawdzenia | NOT RUN |
@@ -153,6 +153,73 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 ---
 
 ## 3. Pozostałe grupy testów
+
+
+### IDOR-01 — Próba odczytu notatki innego użytkownika
+
+**Cel:** sprawdzenie, czy zalogowany użytkownik może uzyskać dostęp do notatki należącej do innego konta poprzez bezpośrednie podanie jej identyfikatora.
+
+**Warunki początkowe:** dwa aktywne, odrębne konta testowe. Użytkownik A posiada notatkę testową. Użytkownik B jest zalogowany w osobnym, prywatnym oknie przeglądarki.
+
+**Przebieg:**
+1. Zalogowano się na konto użytkownika A.
+2. Utworzono notatkę testową i pobrano jej identyfikator z odpowiedzi GET `/api/notes`.
+3. W osobnym oknie zalogowano się na konto użytkownika B.
+4. Wykonano żądanie GET `/api/notes/{id}`, wykorzystując identyfikator notatki użytkownika A.
+5. Sprawdzono status odpowiedzi w Opera GX DevTools.
+6. Ponownie sprawdzono dostępność oryginalnej notatki na koncie A.
+
+**Oczekiwany wynik:** HTTP 404 Not Found. Brak możliwości odczytu cudzej notatki. Oryginalna notatka pozostaje dostępna dla właściciela.
+
+**Wynik rzeczywisty:** Użytkownik B otrzymał HTTP 404 Not Found. Treść cudzej notatki nie została udostępniona. Użytkownik A nadal miał dostęp do swojej notatki.
+
+**Ocena:** PASS.
+
+**Dowód:** `screenshots/idor/idor-01-foreign-note-404.png`
+
+![IDOR-01 — odmowa dostępu do cudzej notatki](screenshots/idor/idor-01-foreign-note-404.png)
+
+**Data wykonania:** 11.10.2026.	
+
+**Uwagi:** Test potwierdza kontrolę właściciela zasobu w operacji odczytu pojedynczej notatki. Zastosowanie odpowiedzi 404 nie ujawnia użytkownikowi B, czy wskazana notatka istnieje.
+
+---
+
+### IDOR-02 — Próba nieuprawnionej edycji cudzej notatki
+
+**Cel:** sprawdzenie, czy zalogowany użytkownik może zmodyfikować notatkę należącą do innego użytkownika poprzez bezpośrednie wskazanie jej identyfikatora.
+
+**Warunki początkowe:** dwa odrębne konta testowe. Użytkownik A jest właścicielem notatki utworzonej podczas IDOR-01. Użytkownik B jest zalogowany w osobnym, prywatnym oknie przeglądarki.
+
+**Przebieg:**
+1. Sprawdzono pierwotny tytuł i treść notatki użytkownika A.
+2. W sesji użytkownika B wykonano żądanie PUT `/api/notes/{id}`, podając identyfikator notatki użytkownika A.
+3. Do żądania dołączono prawidłowy token CSRF za pośrednictwem istniejącej funkcji `apiRequest()`.
+4. Sprawdzono kod odpowiedzi HTTP w Opera GX DevTools.
+5. Ponownie odczytano oryginalną notatkę na koncie użytkownika A i porównano jej tytuł oraz treść ze stanem sprzed testu.
+
+**Oczekiwany wynik:** HTTP 404 Not Found. Próba nieuprawnionej aktualizacji zostaje odrzucona, a oryginalna notatka pozostaje niezmieniona.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 404 Not Found. Po odświeżeniu panelu użytkownika A potwierdzono, że tytuł i treść notatki nie zostały zmodyfikowane.
+
+**Ocena:** PASS.
+
+**Dowody:**
+
+- `screenshots/idor/idor-02-foreign-note-update-404.png`
+- `screenshots/idor/idor-02-original-note-unchanged.png`
+
+![IDOR-02 — odrzucenie próby edycji cudzej notatki](screenshots/idor/idor-02-foreign-note-update-404.png)
+
+![IDOR-02 — oryginalna notatka pozostała niezmieniona](screenshots/idor/idor-02-original-note-unchanged.png)
+
+**Data wykonania:** 11.10.2026.	
+
+**Uwagi:** Prawidłowy token CSRF umożliwił sprawdzenie właściwego mechanizmu autoryzacji. Test potwierdza, że sam identyfikator notatki nie daje uprawnień do jej aktualizacji.
+
+
+
+
 
 Szczegółowe opisy i dowody testów IDOR, CSRF, XSS, nagłówków bezpieczeństwa, ciasteczek oraz OWASP ZAP zostaną dodane w kolejnych etapach audytu.
 
