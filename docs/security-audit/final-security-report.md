@@ -41,8 +41,8 @@ Ocena **PASS** oznacza zgodność obserwacji z oczekiwaniem w danym scenariuszu.
 
 ### 4.1. Zestawienie scenariuszy
 
-| Obszar | Scenariusze | Wynik i najważniejsza obserwacja |
-|---|---|---|
+|				Obszar					|		Scenariusze		|					Wynik i najważniejsza obserwacja																					|
+|---------------------------------------|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------|
 | Uwierzytelnianie i wylogowanie		| AUTH-01–04			| 4/4 PASS; dostęp bez sesji i po standardowym wylogowaniu: 401, po logowaniu: 200														|
 | Kontrola właściciela / IDOR			| IDOR-01–03			| 3/3 PASS; odczyt, aktualizacja i usunięcie notatki A przez B: 404; dane A pozostały nienaruszone										|
 | CSRF									| CSRF-01–03			| 3/3 PASS; brak lub zły token: 400 bez utworzenia notatki; poprawny token: 201															|
