@@ -15,24 +15,24 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 
 ## 1. Podsumowanie wyników
 
-|	 ID		|               Obszar						|         Oczekiwany wynik				|                 Rzeczywisty wynik					| Ocena |
-|-----------|-------------------------------------------|---------------------------------------|---------------------------------------------------|------|
-| AUTH-01	| Dostęp do notatek bez sesji				| HTTP 401								| HTTP 401 Unauthorized								| PASS |
-| AUTH-02	| Dostęp do /api/auth/me bez sesji			| HTTP 401								| HTTP 401 Unauthorized								| PASS |
-| AUTH-03	| Dostęp do notatek po logowaniu			| HTTP 200								| HTTP 200 OK										| PASS |
-| AUTH-04	| Dostęp do notatek po wylogowaniu			| HTTP 401								| HTTP 401 Unauthorized								| PASS |
-| IDOR-01	| Odczyt cudzej notatki						| HTTP 404								| HTTP 404 Not Found								| PASS |
-| IDOR-02	| Edycja cudzej notatki						| HTTP 404, brak zmiany danych			| HTTP 404, notatka niezmieniona					| PASS |
-| IDOR-03	| Usunięcie cudzej notatki					| HTTP 404, notatka nadal istnieje		| HTTP 404, notatka zachowana						| PASS |
-| CSRF-01	| Brak tokenu CSRF							| HTTP 400								| HTTP 400, notatka nieutworzona					| PASS |
-| CSRF-02	| Nieprawidłowy token CSRF					| HTTP 400								| HTTP 400, notatka nieutworzona					| PASS |
-| CSRF-03	| Prawidłowy token CSRF						| HTTP 201								| HTTP 201, notatka utworzona						| PASS |
-| XSS-01	| Stored XSS w treści notatki				| Brak wykonania JS, HTML jako tekst	| Payload wyświetlony jako tekst, brak wykonania JS | PASS |
-| HEAD-01	| Nagłówek Content-Security-Policy			| CSP obecny i zgodny z konfiguracją	| CSP obecny, dyrektywy zgodne						| PASS |
-| HEAD-02	| Nagłówek X-Content-Type-Options			| nosniff								| nosniff											| PASS |
-| HEAD-03	| Nagłówek X-Frame-Options					| DENY									| DENY												| PASS |
-| COOKIE-01 | Atrybuty ciasteczka uwierzytelniającego	| HttpOnly, Secure, SameSite=Strict		| Wszystkie trzy atrybuty potwierdzone				| PASS |
-| ZAP-01	| OWASP ZAP									| Analiza i udokumentowanie ustaleń		| Do sprawdzenia									| NOT RUN |
+|	 ID		|               Obszar						|         Oczekiwany wynik				|                 Rzeczywisty wynik							|			Ocena		|
+|-----------|-------------------------------------------|---------------------------------------|-----------------------------------------------------------|-----------------------|
+| AUTH-01	| Dostęp do notatek bez sesji				| HTTP 401								| HTTP 401 Unauthorized										| PASS					|
+| AUTH-02	| Dostęp do /api/auth/me bez sesji			| HTTP 401								| HTTP 401 Unauthorized										| PASS					|
+| AUTH-03	| Dostęp do notatek po logowaniu			| HTTP 200								| HTTP 200 OK												| PASS					|
+| AUTH-04	| Dostęp do notatek po wylogowaniu			| HTTP 401								| HTTP 401 Unauthorized										| PASS					|
+| IDOR-01	| Odczyt cudzej notatki						| HTTP 404								| HTTP 404 Not Found										| PASS					|
+| IDOR-02	| Edycja cudzej notatki						| HTTP 404, brak zmiany danych			| HTTP 404, notatka niezmieniona							| PASS					|
+| IDOR-03	| Usunięcie cudzej notatki					| HTTP 404, notatka nadal istnieje		| HTTP 404, notatka zachowana								| PASS					|
+| CSRF-01	| Brak tokenu CSRF							| HTTP 400								| HTTP 400, notatka nieutworzona							| PASS					|
+| CSRF-02	| Nieprawidłowy token CSRF					| HTTP 400								| HTTP 400, notatka nieutworzona							| PASS					|
+| CSRF-03	| Prawidłowy token CSRF						| HTTP 201								| HTTP 201, notatka utworzona								| PASS					|
+| XSS-01	| Stored XSS w treści notatki				| Brak wykonania JS, HTML jako tekst	| Payload wyświetlony jako tekst, brak wykonania JS			| PASS					|
+| HEAD-01	| Nagłówek Content-Security-Policy			| CSP obecny i zgodny z konfiguracją	| CSP obecny, dyrektywy zgodne								| PASS					|
+| HEAD-02	| Nagłówek X-Content-Type-Options			| nosniff								| nosniff													| PASS					|
+| HEAD-03	| Nagłówek X-Frame-Options					| DENY									| DENY														| PASS					|
+| COOKIE-01 | Atrybuty ciasteczka uwierzytelniającego	| HttpOnly, Secure, SameSite=Strict		| Wszystkie trzy atrybuty potwierdzone						| PASS					|
+| ZAP-01	| OWASP ZAP									| Analiza i udokumentowanie ustaleń		| Analiza zakończona; 7 kategorii alertów sklasyfikowanych	| PASS (z ustaleniami)	|
 
 ---
 
@@ -40,15 +40,25 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 
 Dotychczas wykonano piętnaście scenariuszy końcowego audytu bezpieczeństwa SecureNotes.
 
-|	Grupa				|	Wynik		|
-|-----------------------|---------------|
-| AUTH-01–AUTH-04		| 4/4 PASS		|
-| IDOR-01–IDOR-03		| 3/3 PASS		|
-| CSRF-01–CSRF-03		| 3/3 PASS		|
-| XSS-01				| 1/1 PASS		|
-| HEAD-01–HEAD-03		| 3/3 PASS		|
-| COOKIE-01				| 1/1 PASS		|
-| **Łącznie wykonane**	| **15/15 PASS**|
+|		Grupa			|			Wynik			|
+|-----------------------|---------------------------|
+| AUTH-01–AUTH-04		| 4/4 PASS					|
+| IDOR-01–IDOR-03		| 3/3 PASS					|
+| CSRF-01–CSRF-03		| 3/3 PASS					|
+| XSS-01				| 1/1 PASS					|
+| HEAD-01–HEAD-03		| 3/3 PASS					|
+| COOKIE-01				| 1/1 PASS					|
+| ZAP-01				| 1/1 PASS (z ustaleniami)	|
+| **Łącznie wykonane**	| **16/16 PASS**			|
+
+Wykonano wszystkie 16 zaplanowanych scenariuszy końcowego audytu bezpieczeństwa SecureNotes.
+
+Wyniki testów funkcjonalnych zabezpieczeń były zgodne z oczekiwaniami. Analiza pasywna OWASP ZAP została zakończona i ujawniła dodatkowe ustalenia konfiguracyjne, 
+w szczególności brak HSTS w lokalnym środowisku Development oraz brak jawnej polityki Cache-Control w badanej odpowiedzi zawierającej prywatne notatki.
+
+Zalecenia te zostały udokumentowane i powinny zostać rozpatrzone przed wdrożeniem aplikacji do środowiska produkcyjnego.
+
+Zakończenie zaplanowanych testów nie jest równoznaczne z potwierdzeniem całkowitej odporności aplikacji na wszystkie zagrożenia bezpieczeństwa.
 
 Testy potwierdziły poprawne działanie badanych mechanizmów uwierzytelniania, kontroli dostępu do notatek, ochrony CSRF, 
 	bezpiecznego wyświetlania testowej treści HTML/JavaScript oraz wybranych nagłówków bezpieczeństwa.
@@ -560,9 +570,258 @@ Do zakończenia audytu pozostaje test ZAP-01. Wynik 15/15 odnosi się wyłączni
 
 ---
 
+### ZAP-01 — Analiza pasywna OWASP ZAP
 
+**Cel:** przeprowadzenie kontrolowanej analizy pasywnej lokalnej aplikacji SecureNotes oraz sklasyfikowanie wykrytych alertów pod kątem ich rzeczywistego znaczenia dla badanego projektu.
 
+**Środowisko:** OWASP ZAP 2.17.0, lokalna aplikacja `https://localhost:7028`, profil Development, tryb bezpieczny (Safe Mode).
 
+**Zakres:** ruch aplikacji SecureNotes zebrany podczas ręcznego przeglądania stron za pośrednictwem przeglądarki uruchomionej przez OWASP ZAP.
+
+**Status:** analiza w toku.
+
+#### Ustalenie 1 — X-Content-Type-Options Header Missing
+
+ZAP wykrył trzy wystąpienia alertu o niskim poziomie ryzyka:
+
+1. `edge-consumer-static.azureedge.net` — zewnętrzny zasób przeglądarki Edge, poza zakresem audytu SecureNotes.
+2. `localhost:7028/_framework/aspnetcore-browser-refresh.js` — pomocniczy skrypt Browser Refresh środowiska ASP.NET Core Development.
+3. `xpaywalletcdn-prod.azureedge.net` — zewnętrzny zasób przeglądarki Edge, poza zakresem audytu SecureNotes.
+
+Wystąpienie dotyczące lokalnego skryptu wskazuje na brak nagłówka `X-Content-Type-Options: nosniff` w odpowiedzi dla zasobu Browser Refresh. Nie dotyczy ono dokumentu `/notes.html`, dla którego obecność tego nagłówka została wcześniej potwierdzona w HEAD-02.
+
+Ustalenie zaklasyfikowano jako dotyczące pomocniczego zasobu lokalnego środowiska programistycznego. Nie zmieniano konfiguracji aplikacji ani oryginalnych alertów ZAP podczas przeprowadzania analizy.
+
+**Dowody:**
+- `screenshots/zap/zap-01-nosniff-alert-analysis.png`
+- `screenshots/zap/zap-01-browser-refresh-alert.png`
+
+![ZAP-01 — trzy wystąpienia alertu X-Content-Type-Options](screenshots/zap/zap-01-nosniff-alert-analysis.png)
+
+![ZAP-01 — alert dotyczący skryptu Browser Refresh](screenshots/zap/zap-01-browser-refresh-alert.png)
+
+**Ocena końcowa ZAP-01:** do ustalenia po przeanalizowaniu pozostałych alertów.
+
+---
+
+#### Ustalenie 2 — Strict-Transport-Security Header Not Set (Systemic)
+
+Podczas analizy pasywnej OWASP ZAP wykrył brak nagłówka `Strict-Transport-Security` w odpowiedziach HTTPS lokalnej aplikacji SecureNotes.
+
+**Poziom ryzyka według ZAP:** Low (niskie).
+
+**Poziom pewności:** High (wysoki).
+
+**Przykładowe adresy objęte alertem:**
+- `https://localhost:7028/`
+- `https://localhost:7028/api/auth/me`
+- `https://localhost:7028/css/style.css`
+- `https://localhost:7028/js/api.js`
+- `https://localhost:7028/js/home.js`
+
+ZAP zgłosił także wystąpienie dotyczące domeny `edge-consumer-static.azureedge.net`, która stanowi zewnętrzny zasób przeglądarki i nie należy do zakresu badanego projektu.
+
+**Analiza:** Brak nagłówka HSTS jest rzeczywistym ustaleniem konfiguracyjnym dotyczącym lokalnego środowiska SecureNotes. Aplikacja była testowana pod adresem HTTPS, jednak samo korzystanie z HTTPS nie zastępuje polityki HSTS.
+
+**Ocena kontekstowa:** ustalenie dotyczy uruchomienia aplikacji w środowisku Development. Nie zweryfikowano konfiguracji wdrożenia produkcyjnego. Przed ewentualnym wdrożeniem należy uwzględnić i zweryfikować konfigurację HSTS właściwą dla produkcyjnej domeny i infrastruktury HTTPS.
+
+Nie modyfikowano konfiguracji aplikacji wyłącznie w celu wyeliminowania alertu podczas audytu.
+
+**Dowody:**
+- `screenshots/zap/zap-01-hsts-affected-urls.png`
+- `screenshots/zap/zap-01-hsts-localhost-detail.png`
+
+![ZAP-01 — lista adresów objętych alertem HSTS](screenshots/zap/zap-01-hsts-affected-urls.png)
+
+![ZAP-01 — szczegóły alertu HSTS dla localhost](screenshots/zap/zap-01-hsts-localhost-detail.png)
+
+---
+
+#### Ustalenie 3 — Cross-Domain Misconfiguration
+
+OWASP ZAP wykrył alert `Cross-Domain Misconfiguration` o średnim poziomie ryzyka i średnim poziomie pewności.
+
+**Adres objęty alertem:** `https://edge-consumer-static.azureedge.net/mouse-gesture/config.json`.
+
+**Dowód wskazany przez ZAP:** `Access-Control-Allow-Origin: *`.
+
+**Analiza:** zgłoszenie dotyczy zewnętrznego zasobu przeglądarki Microsoft Edge, który pojawił się w historii proxy podczas ręcznego przeglądania SecureNotes. Nie dotyczy ono żadnego z endpointów aplikacji `https://localhost:7028`.
+
+**Klasyfikacja:** poza zakresem audytu SecureNotes (*Out of Scope*).
+
+Alert nie stanowi dowodu na nieprawidłową konfigurację CORS badanego projektu. Nie zmieniano konfiguracji SecureNotes ani nie usuwano oryginalnego alertu ZAP.
+
+**Dowód:** `screenshots/zap/zap-01-cors-external-domain.png`
+
+![ZAP-01 — alert CORS dotyczący zewnętrznego zasobu Edge](screenshots/zap/zap-01-cors-external-domain.png)
+
+---
+
+#### Ustalenie 4 — Information Disclosure: Suspicious Comments
+
+OWASP ZAP wykrył alert informacyjny `Information Disclosure - Suspicious Comments` w odpowiedzi:
+
+`https://localhost:7028/_framework/aspnetcore-browser-refresh.js`
+
+**Poziom ryzyka:** Informational.
+
+**Poziom pewności:** Medium.
+
+**Wykryty fragment:** komentarz dotyczący obsługi poprzedniej aktualizacji przez mechanizm Browser Refresh.
+
+**Analiza:** zgłoszenie dotyczy pomocniczego skryptu ASP.NET Core wykorzystywanego w środowisku Development, a nie własnego kodu biznesowego SecureNotes. W przedstawionym fragmencie nie zidentyfikowano haseł, tokenów, kluczy API ani danych użytkowników.
+
+**Klasyfikacja:** alert informacyjny związany z lokalnym środowiskiem programistycznym; brak wykazanego ujawnienia danych wrażliwych.
+
+Nie zmieniano kodu aplikacji ani oryginalnego alertu ZAP.
+
+**Dowód:** `screenshots/zap/zap-01-suspicious-comments-detail.png`
+
+![ZAP-01 — szczegóły alertu Suspicious Comments](screenshots/zap/zap-01-suspicious-comments-detail.png)
+
+---
+
+#### Ustalenie 5 — Re-examine Cache-control Directives (Systemic)
+
+OWASP ZAP wygenerował informacyjny alert dotyczący konieczności przeglądu zasad buforowania odpowiedzi HTTP.
+
+**Poziom ryzyka:** Informational.
+
+**Poziom pewności:** Low.
+
+Alert obejmował sześć odpowiedzi, w tym cztery adresy lokalnej aplikacji SecureNotes:
+
+- `https://localhost:7028/`
+- `https://localhost:7028/api/auth/csrf-token`
+- `https://localhost:7028/login.html`
+- `https://localhost:7028/register.html`
+
+Pozostałe dwa wystąpienia dotyczyły zewnętrznych domen wykorzystywanych przez przeglądarkę Edge i zostały wyłączone z interpretacji wyników SecureNotes.
+
+**Analiza:** dla endpointu GET `/api/auth/csrf-token` ZAP wskazał nagłówek `Cache-Control: no-cache, no-store`, który ogranicza przechowywanie odpowiedzi zawierającej token CSRF. Dla strony głównej oraz formularzy logowania i rejestracji pole Evidence nie zawierało wartości pozwalającej jednoznacznie ocenić politykę buforowania.
+
+Sam alert informacyjny nie potwierdza przechowywania prywatnych notatek w pamięci podręcznej. Zasadne jest jednak osobne zweryfikowanie nagłówków odpowiedzi zawierających dane użytkownika.
+
+**Klasyfikacja:** ustalenie informacyjne wymagające przeglądu polityki Cache-Control dla wybranych odpowiedzi aplikacji. Dla endpointu wydającego token CSRF potwierdzono obecność `no-cache, no-store`.
+
+**Dowody:**
+- `screenshots/zap/zap-01-cache-affected-urls.png`
+- `screenshots/zap/zap-01-cache-csrf-token.png`
+- `screenshots/zap/zap-01-cache-homepage.png`
+
+![ZAP-01 — lista odpowiedzi objętych alertem Cache-Control](screenshots/zap/zap-01-cache-affected-urls.png)
+
+![ZAP-01 — Cache-Control dla endpointu tokenu CSRF](screenshots/zap/zap-01-cache-csrf-token.png)
+
+![ZAP-01 — szczegóły zgłoszenia dla strony głównej](screenshots/zap/zap-01-cache-homepage.png)
+
+---
+
+**Dodatkowa weryfikacja prywatnych danych:**
+
+W ramach analizy sprawdzono również odpowiedź GET `/api/notes` dla poprawnie zalogowanego użytkownika.
+
+Serwer zwrócił HTTP 200 OK z prywatnymi notatkami użytkownika. W nagłówkach odpowiedzi nie stwierdzono obecności `Cache-Control`.
+
+**Ocena:** ustalenie konfiguracyjne wymagające poprawy. Dla odpowiedzi API zawierających prywatne dane zaleca się jawne ustawienie `Cache-Control: no-store`, aby ograniczyć ich przechowywanie przez pamięci podręczne.
+
+Brak nagłówka nie stanowi sam w sobie dowodu faktycznego ujawnienia danych.
+
+**Dodatkowy dowód:** `screenshots/zap/zap-01-private-notes-cache-header.png`
+
+![ZAP-01 — brak Cache-Control w odpowiedzi z prywatnymi notatkami](screenshots/zap/zap-01-private-notes-cache-header.png)
+
+---
+
+#### Ustalenie 6 — Authentication Request Identified
+
+OWASP ZAP rozpoznał żądanie uwierzytelniające aplikacji SecureNotes.
+
+**Endpoint:** POST `/api/auth/login`.
+
+**Poziom ryzyka:** Informational.
+
+**Poziom pewności:** High.
+
+**Rozpoznane parametry:**
+- identyfikator użytkownika: `email`;
+- parametr hasła: `password`.
+
+**Analiza:** zgłoszenie informuje o rozpoznaniu mechanizmu logowania przez skaner. Nie stanowi samodzielnie dowodu występowania podatności ani ujawnienia danych uwierzytelniających.
+
+**Klasyfikacja:** informacyjne rozpoznanie endpointu logowania; brak wykazanej podatności.
+
+Przed zapisaniem materiału dowodowego zakryto wartość identyfikatora użytkownika. Nie umieszczono w dokumentacji hasła ani wartości tokenów sesyjnych.
+
+**Dowód:** `screenshots/zap/zap-01-authentication-request-identified.png`
+
+![ZAP-01 — rozpoznanie żądania uwierzytelniającego](screenshots/zap/zap-01-authentication-request-identified.png)
+
+---
+
+#### Ustalenie 7 — Session Management Response Identified
+
+OWASP ZAP zidentyfikował trzy odpowiedzi związane z mechanizmem zarządzania sesją SecureNotes.
+
+**Poziom ryzyka:** Informational.
+
+**Rozpoznane elementy:**
+- GET `/api/auth/csrf-token` — token w odpowiedzi JSON oraz ciasteczko `SecureNotes.Csrf`;
+- POST `/api/auth/login` — ciasteczko uwierzytelniające `SecureNotes.Auth` (dwa wystąpienia).
+
+**Analiza:** skaner poprawnie rozpoznał odpowiedzi zawierające mechanizmy sesyjne. Samo wystąpienie tego alertu nie oznacza ujawnienia tokenów ani nieprawidłowego zarządzania sesją.
+
+**Klasyfikacja:** informacyjne rozpoznanie mechanizmu uwierzytelniania i ochrony CSRF; brak wykazanej podatności.
+
+W materiałach dowodowych przedstawiono wyłącznie nazwy rozpoznanych mechanizmów. Nie publikowano wartości ciasteczek ani tokenów.
+
+**Dowody:**
+- `screenshots/zap/zap-01-session-management-list.png`
+- `screenshots/zap/zap-01-session-management-auth.png`
+
+![ZAP-01 — lista rozpoznanych odpowiedzi sesyjnych](screenshots/zap/zap-01-session-management-list.png)
+
+![ZAP-01 — rozpoznanie ciasteczka uwierzytelniającego](screenshots/zap/zap-01-session-management-auth.png)
+
+---
+
+#### Wynik końcowy ZAP-01
+
+**Przebieg końcowy:** przeprowadzono ręczną eksplorację lokalnej aplikacji SecureNotes z wykorzystaniem przeglądarki uruchomionej przez OWASP ZAP 2.17.0. 
+						Narzędzie pracowało w trybie Safe Mode. Nie wykonywano Active Scan, Spider ani fuzzingu.
+
+Po zakończeniu przeglądania aplikacji potwierdzono, że kolejka analizy pasywnej wynosiła 0. Wykryto siedem kategorii alertów. 
+Wszystkie zostały poddane analizie uwzględniającej adresy URL, poziom ryzyka, przedstawione dowody oraz kontekst środowiska Development.
+
+**Klasyfikacja końcowa:**
+
+|			Kategoria alertu					|											Wynik analizy																	|
+|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| Cross-Domain Misconfiguration					| Zewnętrzny zasób Microsoft Edge — poza zakresem SecureNotes																|
+| Strict-Transport-Security Header Not Set		| Potwierdzony brak HSTS w lokalnym środowisku Development																	|
+| X-Content-Type-Options Header Missing			| Jedno wystąpienie dotyczące lokalnego skryptu Browser Refresh i dwa dotyczące zasobów zewnętrznych						|
+| Authentication Request Identified				| Informacyjne rozpoznanie endpointu logowania																				|
+| Information Disclosure – Suspicious Comments	| Komentarz pomocniczego skryptu Browser Refresh; brak wykazanego ujawnienia danych wrażliwych								|
+| Re-examine Cache-control Directives			| Potwierdzony brak Cache-Control w badanej odpowiedzi GET `/api/notes`; endpoint tokenu CSRF posiada `no-cache, no-store`	|
+| Session Management Response Identified		| Informacyjne rozpoznanie mechanizmów sesyjnych i CSRF																		|
+
+**Zalecenia po analizie:**
+
+1. Przed wdrożeniem produkcyjnym skonfigurować i zweryfikować właściwą politykę HTTP Strict Transport Security (HSTS).
+2. Dodać i zweryfikować `Cache-Control: no-store` dla odpowiedzi API zawierających prywatne dane użytkownika, w szczególności GET `/api/notes`.
+3. Przygotować osobną weryfikację konfiguracji produkcyjnej bez pomocniczych elementów środowiska Development.
+
+**Ocena ZAP-01:** PASS — zaplanowana analiza pasywna została wykonana, a wszystkie wykryte kategorie alertów przeanalizowano i udokumentowano.
+
+Ocena PASS odnosi się do poprawnego wykonania scenariusza audytowego. Nie oznacza braku ustaleń bezpieczeństwa ani odporności aplikacji na wszystkie możliwe ataki.
+
+**Dowód końcowy:** `screenshots/zap/zap-01-final-alert-summary.png`
+
+![ZAP-01 — końcowa lista alertów analizy pasywnej](screenshots/zap/zap-01-final-alert-summary.png)
+
+**Data wykonania:** 11.10.2026.
+
+---
 
 ## 4. Znane ograniczenia
 
