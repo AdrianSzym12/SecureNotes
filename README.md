@@ -114,9 +114,12 @@ W projekcie zastosowano własny `SecurityHeadersMiddleware`, który ustawia mię
 - `X-Content-Type-Options: nosniff`;
 - `X-Frame-Options: DENY`;
 - `Referrer-Policy: no-referrer`;
-- `Permissions-Policy`.
+- `Permissions-Policy`;
+- `Cache-Control: no-store` dla odpowiedzi API.
 
-Mechanizm pozostaje aktywny w aplikacji.
+Dodatkowo skonfigurowano HTTP Strict Transport Security (HSTS), aktywne poza środowiskiem Development, z polityką `max-age=2592000` (30 dni).
+
+Mechanizmy bezpieczeństwa pozostają aktywne w aplikacji, a restrykcyjna polityka CSP nie została osłabiona.
 
 ## 5. Endpointy API
 
@@ -179,7 +182,7 @@ Port `7028` jest adresem wykorzystywanym w lokalnym środowisku projektowym. W i
 
 Swagger/OpenAPI jest skonfigurowany dla środowiska `Development`.
 
-Adres:
+Adres interfejsu:
 
 `https://localhost:7028/swagger/index.html`
 
@@ -187,9 +190,11 @@ Adres:
 
 Podczas diagnostyki stwierdzono, że problem ustępuje po tymczasowym wyłączeniu `SecurityHeadersMiddleware`. Nie jest to jednak rozwiązanie docelowe, ponieważ middleware odpowiada za ustawianie nagłówków bezpieczeństwa również dla pozostałych stron aplikacji.
 
-W wersji przechowywanej w repozytorium `SecurityHeadersMiddleware` pozostaje aktywny.
+Podjęto decyzję o zachowaniu restrykcyjnej polityki CSP bez dodawania wyjątków osłabiających zabezpieczenia aplikacji.
 
-Planowane rozwiązanie zakłada dostosowanie CSP wyłącznie do potrzeb Swagger UI w środowisku deweloperskim, bez osłabiania zabezpieczeń właściwego interfejsu SecureNotes.
+Dokumentacja OpenAPI w formacie JSON pozostaje dostępna pod adresem:
+
+`https://localhost:7028/swagger/v1/swagger.json`
 
 ## 9. Testowanie
 
@@ -201,9 +206,10 @@ W projekcie zaimplementowano testy jednostkowe i integracyjne obejmujące międz
 - tworzenie i odczyt notatek;
 - aktualizację i usuwanie notatek;
 - sprawdzanie właściciela notatki;
-- poprawność działania repozytoriów.
+- poprawność działania repozytoriów;
+- weryfikację konfiguracji HSTS.
 
-**Ostatni potwierdzony wynik: 82/82 zaliczonych testów automatycznych.**
+**Ostatni potwierdzony wynik: 85/85 zaliczonych testów automatycznych.**
 
 Do uruchomienia testów integracyjnych wymagane jest odpowiednio przygotowane środowisko bazodanowe, w tym testowa baza MariaDB `securenotes_test_db`.
 
@@ -213,7 +219,7 @@ Testy można wykonać w Visual Studio za pomocą:
 
 W ramach ręcznej weryfikacji sprawdzano również kontrolę dostępu, mechanizmy CSRF oraz zachowanie aplikacji w przypadku prób dostępu do notatek innego użytkownika.
 
-Końcowy audyt z wykorzystaniem OWASP ZAP oraz przygotowanie zbiorczego raportu bezpieczeństwa stanowią osobny etap projektu.
+Szczegółowa dokumentacja przeprowadzonych testów bezpieczeństwa, działań naprawczych i ich wyników znajduje się w katalogu [`docs/security-audit/`](docs/security-audit/).
 
 ## 10. Organizacja pracy z Git
 
@@ -226,7 +232,7 @@ Główne gałęzie:
 - `feature/*` – implementacja nowych funkcjonalności;
 - `fix/*` – poprawki błędów;
 - `chore/*` – porządkowanie projektu;
-- `docs/*` – zmiany dokumentacji.  
+- `docs/*` – zmiany dokumentacji.
 
 Zmiany przygotowywane są na osobnych branchach, a następnie scalane z `develop` za pomocą Pull Request.
 
