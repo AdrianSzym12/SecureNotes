@@ -27,10 +27,10 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 | CSRF-01 | Brak tokenu CSRF | HTTP 400 | HTTP 400, notatka nieutworzona | PASS |
 | CSRF-02 | Nieprawidłowy token CSRF | HTTP 400 | HTTP 400, notatka nieutworzona | PASS |
 | CSRF-03 | Prawidłowy token CSRF | HTTP 201 | HTTP 201, notatka utworzona | PASS |
-| XSS-01 | Wyświetlanie testowej treści HTML | Brak wykonania skryptu | Do sprawdzenia | NOT RUN |
-| HEAD-01 | Nagłówek CSP | Obecny | Do sprawdzenia | NOT RUN |
-| HEAD-02 | X-Content-Type-Options | nosniff | Do sprawdzenia | NOT RUN |
-| HEAD-03 | X-Frame-Options | DENY | Do sprawdzenia | NOT RUN |
+| XSS-01 | Stored XSS w treści notatki | Brak wykonania JS, HTML jako tekst | Payload wyświetlony jako tekst, brak wykonania JS | PASS |
+| HEAD-01 | Nagłówek Content-Security-Policy | CSP obecny i zgodny z konfiguracją | CSP obecny, dyrektywy zgodne | PASS |
+| HEAD-02 | Nagłówek X-Content-Type-Options | nosniff | nosniff | PASS |
+| HEAD-03 | Nagłówek X-Frame-Options | DENY | DENY | PASS |
 | COOKIE-01 | Właściwości ciasteczka sesyjnego | HttpOnly, Secure, SameSite=Strict | Do sprawdzenia | NOT RUN |
 | ZAP-01 | OWASP ZAP | Analiza i udokumentowanie ustaleń | Do sprawdzenia | NOT RUN |
 
@@ -357,7 +357,148 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 
 ---
 
+### XSS-01 — Próba Stored XSS w treści notatki
 
+**Cel:** sprawdzenie, czy aplikacja bezpiecznie wyświetla zapisane przez użytkownika fragmenty HTML i JavaScript, bez interpretowania ich jako aktywny kod przeglądarki.
+
+**Warunki początkowe:** uruchomiona aplikacja SecureNotes, aktywna sesja użytkownika testowego A oraz włączony mechanizm Content Security Policy (CSP).
+
+**Dane testowe:**
+
+```text
+<h1>XSS-TEST-HTML</h1>
+
+<img src="xss-test-invalid-image" onerror="alert('XSS-01-EXECUTED')">
+```
+
+**Przebieg:**
+1. Zalogowano się na konto testowe A.
+2. Utworzono notatkę `XSS-01 - Stored XSS`, zawierającą kontrolowany fragment HTML oraz próbę wykonania JavaScript.
+3. Zapisano notatkę za pomocą interfejsu SecureNotes.
+4. Odświeżono stronę, aby ponownie pobrać notatkę z API i wyświetlić zapisane dane.
+5. Sprawdzono, czy znaczniki HTML są widoczne dosłownie jako tekst.
+6. Zweryfikowano brak wykonania JavaScript oraz strukturę DOM notatki w Opera GX DevTools.
+
+**Oczekiwany wynik:** testowy fragment HTML jest wyświetlany jako zwykły tekst, nie tworzy dodatkowych elementów DOM i nie prowadzi do wykonania JavaScript.
+
+**Wynik rzeczywisty:** Po zapisaniu i ponownym wyświetleniu notatki znaczniki HTML pozostały widoczne jako zwykły tekst. Nie pojawiło się okno `XSS-01-EXECUTED`. 
+							Kontrola DOM nie wykazała utworzenia dodatkowych elementów HTML wewnątrz treści notatki.
+
+**Ocena:** PASS.
+
+**Dowody:**
+
+- `screenshots/xss/xss-01-test-note-created.png`
+- `screenshots/xss/xss-01-payload-rendered-as-text.png`
+- `screenshots/xss/xss-01-dom-verification.png`
+
+![XSS-01 — utworzenie notatki z danymi testowymi](screenshots/xss/xss-01-test-note-created.png)
+
+![XSS-01 — wyświetlenie fragmentu HTML i JavaScript jako zwykłego tekstu](screenshots/xss/xss-01-payload-rendered-as-text.png)
+
+![XSS-01 — sprawdzenie struktury DOM](screenshots/xss/xss-01-dom-verification.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Test dotyczył scenariusza Stored XSS w treści notatki. Brak wykonania JavaScript oceniono łącznie z kontrolą struktury DOM, 
+			aby odróżnić bezpieczne wyświetlanie tekstu od samego blokowania skryptów przez CSP. Nie wyłączano żadnych zabezpieczeń aplikacji.
+
+---
+
+### HEAD-01 — Weryfikacja nagłówka Content-Security-Policy
+
+**Cel:** sprawdzenie, czy SecureNotes wysyła aktywny nagłówek Content-Security-Policy (CSP), 
+			ograniczający źródła zasobów i możliwości wykonywania potencjalnie niebezpiecznego kodu w przeglądarce.
+
+**Warunki początkowe:** uruchomiona aplikacja SecureNotes, włączony SecurityHeadersMiddleware oraz otwarta przeglądarka Opera GX.
+
+**Przebieg:**
+1. Otworzono stronę `https://localhost:7028/notes.html`.
+2. Uruchomiono Opera GX DevTools i przełączono się do zakładki Network.
+3. Odświeżono stronę i wybrano żądanie dokumentu `GET /notes.html`.
+4. Sprawdzono kod odpowiedzi HTTP oraz sekcję Response Headers.
+5. Zweryfikowano obecność aktywnego nagłówka `Content-Security-Policy` i porównano jego dyrektywy z konfiguracją SecureNotes.
+
+**Oczekiwany wynik:** odpowiedź HTTP 200 OK oraz obecność restrykcyjnego nagłówka CSP, 
+						zawierającego między innymi `default-src 'none'`, `script-src 'self'`, `script-src-attr 'none'`, `object-src 'none'` i `frame-ancestors 'none'`.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 200 OK. W nagłówkach odpowiedzi znajdował się aktywny `Content-Security-Policy`, którego dyrektywy były zgodne z konfiguracją aplikacji.
+
+**Ocena:** PASS.
+
+**Dowód:** `screenshots/headers/head-01-content-security-policy.png`
+
+![HEAD-01 — aktywny nagłówek Content-Security-Policy](screenshots/headers/head-01-content-security-policy.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Test przeprowadzono bez wyłączania SecurityHeadersMiddleware. Zweryfikowano nagłówek Content-Security-Policy, 
+			a nie wyłącznie jego wariant raportujący Content-Security-Policy-Report-Only. Weryfikacja nagłówka uzupełnia wcześniejszy test XSS-01, 
+			lecz sama w sobie nie stanowi dowodu odporności na wszystkie warianty XSS.
+
+
+---
+
+### HEAD-02 — Weryfikacja nagłówka X-Content-Type-Options
+
+**Cel:** sprawdzenie, czy SecureNotes wysyła nagłówek `X-Content-Type-Options: nosniff`, ograniczający możliwość samodzielnego odgadywania typów MIME przez przeglądarkę.
+
+**Warunki początkowe:** uruchomiona aplikacja SecureNotes z aktywnym SecurityHeadersMiddleware; otwarta przeglądarka Opera GX.
+
+**Przebieg:**
+1. Otworzono stronę `https://localhost:7028/notes.html`.
+2. Uruchomiono Opera GX DevTools i przełączono się do zakładki Network.
+3. Wybrano żądanie dokumentu GET `/notes.html`.
+4. Sprawdzono kod odpowiedzi HTTP oraz sekcję Response Headers.
+5. Zweryfikowano obecność nagłówka `X-Content-Type-Options` i jego wartość.
+
+**Oczekiwany wynik:** HTTP 200 OK oraz nagłówek `X-Content-Type-Options: nosniff`.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 200 OK. W nagłówkach odpowiedzi znajdował się `X-Content-Type-Options` o wartości `nosniff`.
+
+**Ocena:** PASS.
+
+**Dowód:** `screenshots/headers/head-02-x-content-type-options.png`
+
+![HEAD-02 — nagłówek X-Content-Type-Options nosniff](screenshots/headers/head-02-x-content-type-options.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Test przeprowadzono na rzeczywistej odpowiedzi HTTP serwera, bez zmiany konfiguracji aplikacji. 
+			Sprawdzono obecność i wartość nagłówka; nie wykonywano osobnego testu zachowania przeglądarki dla plików z celowo błędnym typem MIME.
+
+
+---
+
+
+### HEAD-03 — Weryfikacja nagłówka X-Frame-Options
+
+**Cel:** sprawdzenie, czy aplikacja SecureNotes wysyła nagłówek `X-Frame-Options: DENY`, 
+			ograniczający możliwość osadzania jej stron wewnątrz ramek i stanowiący dodatkową ochronę przed atakami typu clickjacking.
+
+**Warunki początkowe:** uruchomiona aplikacja SecureNotes, aktywny SecurityHeadersMiddleware oraz otwarta przeglądarka Opera GX.
+
+**Przebieg:**
+1. Otworzono stronę `https://localhost:7028/notes.html`.
+2. Uruchomiono Opera GX DevTools i przełączono się do zakładki Network.
+3. Wybrano żądanie dokumentu GET `/notes.html`.
+4. Sprawdzono kod odpowiedzi HTTP oraz sekcję Response Headers.
+5. Zweryfikowano obecność nagłówka `X-Frame-Options` i jego wartość.
+
+**Oczekiwany wynik:** HTTP 200 OK oraz obecność nagłówka `X-Frame-Options: DENY`.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 200 OK. W nagłówkach odpowiedzi znajdował się `X-Frame-Options` o wartości `DENY`.
+
+**Ocena:** PASS.
+
+**Dowód:** `screenshots/headers/head-03-x-frame-options-deny.png`
+
+![HEAD-03 — nagłówek X-Frame-Options DENY](screenshots/headers/head-03-x-frame-options-deny.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Nagłówek X-Frame-Options stanowi dodatkową warstwę ochrony obok potwierdzonej wcześniej dyrektywy CSP `frame-ancestors 'none'`. 
+			Test zweryfikował obecność i wartość nagłówka w rzeczywistej odpowiedzi HTTP. Nie przeprowadzano osobnego testu próby osadzenia aplikacji wewnątrz elementu iframe.
 
 
 Szczegółowe opisy i dowody testów IDOR, CSRF, XSS, nagłówków bezpieczeństwa, ciasteczek oraz OWASP ZAP zostaną dodane w kolejnych etapach audytu.
