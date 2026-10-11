@@ -23,10 +23,10 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 | AUTH-04 | Dostęp do notatek po wylogowaniu | HTTP 401 | HTTP 401 Unauthorized | PASS |
 | IDOR-01 | Odczyt cudzej notatki | HTTP 404 | HTTP 404 Not Found | PASS |
 | IDOR-02 | Edycja cudzej notatki | HTTP 404, brak zmiany danych | HTTP 404, notatka niezmieniona | PASS |
-| IDOR-03 | Usunięcie cudzej notatki | HTTP 404, notatka nadal istnieje | Do sprawdzenia | NOT RUN |
-| CSRF-01 | Brak tokenu CSRF | HTTP 400 | Do sprawdzenia | NOT RUN |
-| CSRF-02 | Nieprawidłowy token CSRF | HTTP 400 | Do sprawdzenia | NOT RUN |
-| CSRF-03 | Prawidłowy token CSRF | HTTP 201 | Do sprawdzenia | NOT RUN |
+| IDOR-03 | Usunięcie cudzej notatki | HTTP 404, notatka nadal istnieje | HTTP 404, notatka zachowana | PASS |
+| CSRF-01 | Brak tokenu CSRF | HTTP 400 | HTTP 400, notatka nieutworzona | PASS |
+| CSRF-02 | Nieprawidłowy token CSRF | HTTP 400 | HTTP 400, notatka nieutworzona | PASS |
+| CSRF-03 | Prawidłowy token CSRF | HTTP 201 | HTTP 201, notatka utworzona | PASS |
 | XSS-01 | Wyświetlanie testowej treści HTML | Brak wykonania skryptu | Do sprawdzenia | NOT RUN |
 | HEAD-01 | Nagłówek CSP | Obecny | Do sprawdzenia | NOT RUN |
 | HEAD-02 | X-Content-Type-Options | nosniff | Do sprawdzenia | NOT RUN |
@@ -217,6 +217,145 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 
 **Uwagi:** Prawidłowy token CSRF umożliwił sprawdzenie właściwego mechanizmu autoryzacji. Test potwierdza, że sam identyfikator notatki nie daje uprawnień do jej aktualizacji.
 
+---
+
+### IDOR-03 — Próba nieuprawnionego usunięcia cudzej notatki
+
+**Cel:** sprawdzenie, czy zalogowany użytkownik może usunąć notatkę należącą do innego użytkownika poprzez bezpośrednie wskazanie jej identyfikatora.
+
+**Warunki początkowe:** dwa odrębne konta testowe. Użytkownik A posiada notatkę utworzoną podczas IDOR-01. Użytkownik B jest zalogowany w osobnym, prywatnym oknie przeglądarki.
+
+**Przebieg:**
+1. Potwierdzono istnienie notatki użytkownika A.
+2. W sesji użytkownika B wykonano żądanie DELETE `/api/notes/{id}`, podając identyfikator notatki użytkownika A.
+3. Do żądania dołączono prawidłowy token CSRF za pośrednictwem istniejącej funkcji `apiRequest()`.
+4. Sprawdzono kod odpowiedzi HTTP w Opera GX DevTools.
+5. Ponownie otwarto panel użytkownika A i sprawdzono, czy oryginalna notatka nadal istnieje.
+
+**Oczekiwany wynik:** HTTP 404 Not Found. Nieuprawniona operacja usunięcia zostaje odrzucona, a notatka pozostaje dostępna dla właściciela.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 404 Not Found. Po ponownym otwarciu panelu użytkownika A potwierdzono, że notatka nadal istnieje i nie została usunięta.
+
+**Ocena:** PASS.
+
+**Dowody:**
+
+- `screenshots/idor/idor-03-foreign-note-delete-404.png`
+- `screenshots/idor/idor-03-original-note-exists.png`
+
+![IDOR-03 — odrzucona próba usunięcia cudzej notatki](screenshots/idor/idor-03-foreign-note-delete-404.png)
+
+![IDOR-03 — oryginalna notatka nadal istnieje](screenshots/idor/idor-03-original-note-exists.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Prawidłowy token CSRF umożliwił weryfikację mechanizmu autoryzacji. Test sprawdza, czy znajomość identyfikatora zasobu nie pozwala innemu zalogowanemu użytkownikowi na jego usunięcie.
+
+---
+
+### CSRF-01 — Próba utworzenia notatki bez tokenu CSRF
+
+**Cel:** sprawdzenie, czy aplikacja odrzuca żądanie modyfikujące dane w przypadku braku wymaganego tokenu anty-CSRF.
+
+**Warunki początkowe:** użytkownik A jest poprawnie zalogowany i posiada aktywną sesję. Mechanizm Antiforgery oraz SecurityHeadersMiddleware pozostają włączone.
+
+**Przebieg:**
+1. Zalogowano się na konto testowe A.
+2. W konsoli przeglądarki wykonano żądanie POST `/api/notes`, korzystając z funkcji `fetch()`.
+3. Do żądania dołączono poprawne dane JSON, ale celowo pominięto nagłówek `X-CSRF-TOKEN`.
+4. Sprawdzono status odpowiedzi w Opera GX DevTools.
+5. Odświeżono listę notatek, aby zweryfikować, czy żądanie nie spowodowało utworzenia nowego obiektu.
+
+**Oczekiwany wynik:** HTTP 400 Bad Request. Nowa notatka nie zostaje utworzona.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 400 Bad Request. Żądanie bez tokenu CSRF zostało odrzucone, a testowa notatka nie pojawiła się na liście użytkownika.
+
+**Ocena:** PASS.
+
+**Dowody:**
+
+- `screenshots/csrf/csrf-01-missing-token-400.png`
+- `screenshots/csrf/csrf-01-note-not-created.png`
+
+![CSRF-01 — żądanie POST bez tokenu odrzucone przez serwer](screenshots/csrf/csrf-01-missing-token-400.png)
+
+![CSRF-01 — brak utworzonej notatki testowej](screenshots/csrf/csrf-01-note-not-created.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Użytkownik posiadał aktywną sesję uwierzytelnioną. Test weryfikował wyłącznie brak tokenu CSRF, bez wyłączania mechanizmu Antiforgery ani innych zabezpieczeń aplikacji.
+
+---
+
+### CSRF-02 — Próba utworzenia notatki z nieprawidłowym tokenem CSRF
+
+**Cel:** sprawdzenie, czy aplikacja weryfikuje poprawność tokenu anty-CSRF i odrzuca żądanie zawierające nieprawidłową wartość nagłówka `X-CSRF-TOKEN`.
+
+**Warunki początkowe:** użytkownik A jest poprawnie zalogowany i posiada aktywną sesję. Mechanizmy Antiforgery oraz SecurityHeadersMiddleware pozostają aktywne.
+
+**Przebieg:**
+1. Zalogowano się na konto testowe A.
+2. W konsoli Opera GX wykonano żądanie POST `/api/notes` przy użyciu funkcji `fetch()`.
+3. Wysłano prawidłowe dane JSON oraz nagłówek `X-CSRF-TOKEN` o celowo nieprawidłowej wartości.
+4. Sprawdzono odpowiedź HTTP w zakładce Network → Headers.
+5. Odświeżono listę notatek, aby zweryfikować, czy nie doszło do utworzenia nowego obiektu.
+
+**Oczekiwany wynik:** HTTP 400 Bad Request. Testowa notatka nie zostaje utworzona.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 400 Bad Request. Nieprawidłowy token CSRF został odrzucony, a testowa notatka nie została utworzona.
+
+**Ocena:** PASS.
+
+**Dowody:**
+- `screenshots/csrf/csrf-02-invalid-token-400.png`
+- `screenshots/csrf/csrf-02-note-not-created.png`
+
+![CSRF-02 — odrzucenie żądania z nieprawidłowym tokenem](screenshots/csrf/csrf-02-invalid-token-400.png)
+
+![CSRF-02 — brak utworzonej notatki](screenshots/csrf/csrf-02-note-not-created.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** W przeciwieństwie do CSRF-01 nagłówek `X-CSRF-TOKEN` był obecny, lecz zawierał nieprawidłową wartość. 
+			Test pozwolił sprawdzić walidację tokenu, a nie tylko kontrolę jego obecności.
+
+---
+
+### CSRF-03 — Utworzenie notatki z prawidłowym tokenem CSRF
+
+**Cel:** sprawdzenie, czy aplikacja akceptuje poprawne żądanie modyfikujące dane, zawierające ważny token anty-CSRF.
+
+**Warunki początkowe:** użytkownik A jest poprawnie zalogowany i posiada aktywną sesję. Mechanizmy Antiforgery oraz SecurityHeadersMiddleware pozostają włączone.
+
+**Przebieg:**
+1. Zalogowano się na konto testowe A.
+2. Wykorzystano istniejącą funkcję `apiRequest()` z modułu `/js/api.js`.
+3. Funkcja pobrała token za pomocą endpointu GET `/api/auth/csrf-token`.
+4. Wykonano żądanie POST `/api/notes` z poprawnymi danymi JSON i prawidłowym tokenem CSRF.
+5. Sprawdzono odpowiedź HTTP w Opera GX DevTools.
+6. Odświeżono panel notatek i zweryfikowano obecność nowo utworzonej notatki.
+
+**Oczekiwany wynik:** HTTP 201 Created. Nowa notatka zostaje zapisana i jest dostępna na koncie użytkownika A.
+
+**Wynik rzeczywisty:** Serwer zwrócił HTTP 201 Created. Po odświeżeniu panelu potwierdzono obecność notatki „CSRF-03 - poprawny token”.
+
+**Ocena:** PASS.
+
+**Dowody:**
+
+- `screenshots/csrf/csrf-03-valid-token-201.png`
+- `screenshots/csrf/csrf-03-note-created.png`
+
+![CSRF-03 — poprawne żądanie POST zaakceptowane przez serwer](screenshots/csrf/csrf-03-valid-token-201.png)
+
+![CSRF-03 — nowa notatka zapisana na koncie użytkownika](screenshots/csrf/csrf-03-note-created.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Wynik uzupełnia testy CSRF-01 i CSRF-02. Potwierdza, że aplikacja odrzuca żądania bez poprawnego tokenu CSRF, 
+			ale pozwala wykonywać operacje z prawidłowym tokenem i aktywną sesją.
+
+---
 
 
 
