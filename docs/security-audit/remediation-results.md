@@ -90,10 +90,96 @@ Badane odpowiedzi API otrzymuj¹ `Cache-Control: no-store`, natomiast sprawdzony 
 
 ---
 
+## 4. REM-02 — Konfiguracja HSTS
+
+### Problem wykryty podczas audytu
+
+Podczas analizy pasywnej OWASP ZAP (ZAP-01) wykryto brak nag³ówka `Strict-Transport-Security` w odpowiedziach lokalnej aplikacji uruchomionej w œrodowisku Development.
+
+### Zastosowana poprawka
+
+W pliku `SecureNotes.API/Program.cs` zarejestrowano politykê HSTS:
+
+```csharp
+builder.Services.AddHsts(options =>
+{
+    options.MaxAge = TimeSpan.FromDays(30);
+    options.IncludeSubDomains = false;
+    options.Preload = false;
+});
+```
+
+Middleware HSTS w³¹czono warunkowo poza œrodowiskiem Development, przed `UseHttpsRedirection()`:
+
+```csharp
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+```
+
+Nie zmieniano istniej¹cych profili lokalnego uruchamiania ani polityki CSP.
+
+### Weryfikacja
+
+|   ID    |             Sprawdzany warunek          |          Wynik                            | Status |
+|---------|-----------------------------------------|-------------------------------------------|--------|
+| HSTS-01 | Izolowany potok Production + HTTPS      | `max-age=2592000`                         | PASS   |
+| HSTS-02 | Izolowany potok Development + HTTPS     | Brak nag³ówka HSTS                        | PASS   |
+| HSTS-03 | Izolowana polityka Production           | Brak `includeSubDomains` oraz `preload`   | PASS   |
+
+Zweryfikowano równie¿ zawartoœæ rzeczywistego `Program.cs` oraz konfiguracjê `launchSettings.json`.
+
+Testy HSTS wykorzystuj¹ izolowany potok HTTP odtwarzaj¹cy konfiguracjê aplikacji. Nie uruchamiaj¹ rzeczywistego `Program.Main()` ani nie korzystaj¹ z MariaDB.
+
+### Ograniczenia
+
+Nie przeprowadzono testu rzeczywistego wdro¿enia Production.
+
+Przed publikacj¹ aplikacji nale¿y sprawdziæ dzia³anie HSTS na docelowej domenie HTTPS, poprawnoœæ certyfikatu oraz przekierowania HTTP do HTTPS.
+
+Brak HSTS podczas lokalnego uruchomienia w œrodowisku Development jest zgodny z przyjêt¹ konfiguracj¹.
+
+### Testy regresyjne
+
+Po zastosowaniu poprawki wykonano:
+
+-Rebuild Solution — zakoñczony sukcesem.
+
+-Run All Tests — 85/85 testów zakoñczonych sukcesem.
+
+-Nie stwierdzono niepowodzeñ w istniej¹cych testach automatycznych.
+
+**Wynik:** 85/85 PASS.
+
+**Dowód:** `screenshots/retest/hsts-01-automated-tests.png`
+
+![REM-02 — testy automatyczne po konfiguracji HSTS](screenshots/retest/hsts-01-automated-tests.png)
+
+### Wynik koñcowy REM-02
+
+PASS — implementacja i izolowane testy konfiguracji HSTS zakoñczone sukcesem.
+
+Weryfikacja rzeczywistego wdro¿enia produkcyjnego pozostaje zadaniem przedwdro¿eniowym.
+
+Data retestu: 11.10.2026.
+
+---
+
+
 ## 3. Pozosta³e dzia³ania naprawcze
 
-Do dalszej analizy pozostaj¹:
+---
 
-1. Konfiguracja i weryfikacja HSTS dla œrodowiska produkcyjnego.
-2. Ocena zachowania nag³ówków bezpieczeñstwa po wy³¹czeniu pomocniczych mechanizmów Development.
-3. Koñcowe testy regresyjne i porównanie wyników z pierwotnym audytem.
+## 5. Pozosta³e dzia³ania
+
+Po zakoñczeniu REM-01 i REM-02 do dalszej weryfikacji pozostaj¹:
+
+1. Sprawdzenie dzia³ania aplikacji i nag³ówków bezpieczeñstwa bez pomocniczego mechanizmu ASP.NET Core Browser Refresh.
+2. Ocena ograniczenia dotycz¹cego Swagger UI przy restrykcyjnej polityce CSP.
+3. Koñcowe testy regresyjne po wszystkich zmianach.
+4. Weryfikacja konfiguracji rzeczywistego œrodowiska Production przed wdro¿eniem, w tym HTTPS i HSTS.
+
+Pierwotne wyniki audytu pozostaj¹ dostêpne w `results.md` i nie zosta³y nadpisane.
