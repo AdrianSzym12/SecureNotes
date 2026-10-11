@@ -168,6 +168,107 @@ Data retestu: 11.10.2026.
 
 ---
 
+## 5. REM-03 — Ocena ograniczeñ œrodowiska Development
+
+### ASP.NET Core Browser Refresh
+
+W ramach kontroli œrodowiska Development wy³¹czono Hot Reload w Visual Studio 2022.
+
+Po ponownym uruchomieniu aplikacji potwierdzono, ¿e pomocniczy mechanizm Browser Refresh nie podejmuje ju¿ obserwowanych wczeœniej prób po³¹czenia WebSocket z portem 44341.
+
+Aplikacja SecureNotes nadal dzia³a³a prawid³owo, a odpowiedŸ GET `/api/notes` zwraca³a HTTP 200 oraz `Cache-Control: no-store`.
+
+Wy³¹czenie Hot Reload jest lokalnym ustawieniem œrodowiska programistycznego, a nie zmian¹ zabezpieczeñ aplikacji.
+
+### Swagger UI i Content Security Policy
+
+W trakcie audytu stwierdzono ograniczenie dzia³ania interfejsu Swagger UI wynikaj¹ce z restrykcyjnej polityki CSP.
+
+Podjêto decyzjê o pozostawieniu globalnej polityki CSP bez zmian. Nie dodawano dyrektyw `unsafe-inline` ani wyj¹tków os³abiaj¹cych zabezpieczenia w³aœciwej aplikacji.
+
+Swagger UI pozostaje dostêpny konfiguracyjnie wy³¹cznie w œrodowisku Development. Do przegl¹dania dokumentacji API mo¿na równie¿ wykorzystaæ endpoint `/swagger/v1/swagger.json`.
+
+Ewentualne tymczasowe wy³¹czenie CSP na potrzeby lokalnego debugowania nie stanowi konfiguracji docelowej i nie jest uwzglêdniane jako dowód zaliczenia testów bezpieczeñstwa.
+
+### Ocena REM-03
+
+**ZAMKNIÊTE — œwiadomie zaakceptowano ograniczenie narzêdzia deweloperskiego.**
+
+Nie stwierdzono potrzeby modyfikowania globalnej polityki CSP. Nie wprowadzono zmian w kodzie aplikacji w ramach REM-03.
+
+---
+
+## 6. ZAP-02 — Kontrolna analiza pasywna po naprawach
+
+### Cel
+
+Ponowna analiza aplikacji SecureNotes przy u¿yciu OWASP ZAP 2.17.0 w celu zweryfikowania dzia³añ naprawczych po pierwotnym audycie ZAP-01.
+
+Test wykonano w trybie Safe Mode, korzystaj¹c z Manual Explore i lokalnej aplikacji uruchomionej w œrodowisku Development pod adresem `https://localhost:7028`.
+
+Nie wykonywano Active Scan, Spider ani fuzzingu.
+
+### Wyniki porównawcze
+
+| Kategoria alertu | ZAP-01 | ZAP-02 | Ocena |
+|---|---|---|---|
+| Cross-Domain Misconfiguration | Wystêpowa³ | Wystêpuje | Zewnêtrzna domena Edge — poza zakresem |
+| Strict-Transport-Security Header Not Set | Wystêpowa³ | Wystêpuje | Lokalny Development; zgodne z konfiguracj¹ HSTS |
+| X-Content-Type-Options Header Missing | 3 wyst¹pienia | 2 wyst¹pienia | W ZAP-02 wy³¹cznie zewnêtrzne domeny |
+| Authentication Request Identified | Wystêpowa³ | Wystêpuje | Informacyjne rozpoznanie endpointu logowania |
+| Information Disclosure – Suspicious Comments | Wystêpowa³ | Nie wystêpuje na liœcie | Nie zaobserwowano ponownie alertu dotycz¹cego Browser Refresh |
+| Re-examine Cache-control Directives | Wystêpowa³ | Wystêpuje | Zweryfikowano indywidualnie odpowiedzi API |
+| Session Management Response Identified | 3 wyst¹pienia | 3 wyst¹pienia | Informacyjne rozpoznanie mechanizmów sesyjnych |
+
+### Weryfikacja Cache-Control
+
+ZAP-02 przechwyci³ odpowiedŸ:
+
+`GET https://localhost:7028/api/notes`
+
+Potwierdzono:
+- HTTP 200 OK;
+- `Cache-Control: no-store`;
+- obecnoœæ pozosta³ych nag³ówków bezpieczeñstwa, w tym CSP i `X-Content-Type-Options: nosniff`.
+
+Endpoint `/api/notes` nie znajdowa³ siê na liœcie wyst¹pieñ alertu `Re-examine Cache-control Directives (Systemic)` w analizowanej sesji.
+
+Dodatkowo szczegó³y alertu przypisanego do `/api/auth/me` zawiera³y dowód `no-store`. Obecnoœæ ogólnej regu³y informacyjnej nie oznacza³a wiêc braku zastosowanej poprawki.
+
+### Pozosta³e ustalenia
+
+Dwa wyst¹pienia `X-Content-Type-Options Header Missing` w ZAP-02 dotyczy³y wy³¹cznie zewnêtrznych domen `edge-consumer-static.azureedge.net` oraz `xpaywalletcdn-prod.azureedge.net`.
+
+Alert CORS równie¿ dotyczy³ zewnêtrznego zasobu Edge.
+
+HSTS nie by³ wysy³any przez lokalne œrodowisko Development, zgodnie z przyjêt¹ konfiguracj¹. Test rzeczywistego wdro¿enia Production pozostaje wymaganiem przedwdro¿eniowym.
+
+Alerty dotycz¹ce rozpoznania ¿¹dania logowania i mechanizmów sesyjnych zachowa³y charakter informacyjny.
+
+### Materia³y dowodowe
+
+- `screenshots/zap-retest/zap-02-cache-notes-no-store.png`
+- `screenshots/zap-retest/zap-02-cache-auth-me-alert.png`
+- `screenshots/zap-retest/zap-02-nosniff-external-only.png`
+- `screenshots/zap-retest/zap-02-hsts-development.png`
+- `screenshots/zap-retest/zap-02-cors-external-domain.png`
+- `screenshots/zap-retest/zap-02-auth-session-info.png`
+
+Wszystkie materia³y przeznaczone do repozytorium powinny byæ pozbawione wartoœci JWT, ciasteczek, tokenów CSRF oraz prywatnej treœci notatek.
+
+### Wynik koñcowy
+
+**ZAP-02: PASS z udokumentowanymi ustaleniami.**
+
+Kontrolna analiza pasywna potwierdzi³a skutecznoœæ poprawki Cache-Control dla badanej odpowiedzi zawieraj¹cej prywatne notatki.
+
+Liczba zaobserwowanych kategorii alertów zmieni³a siê z siedmiu podczas ZAP-01 do szeœciu podczas ZAP-02. Wynik ten dotyczy zakresu ruchu przechwyconego w obu sesjach i nie stanowi dowodu wyeliminowania wszystkich mo¿liwych podatnoœci.
+
+**Data retestu:** 11.10.2026.
+
+---
+
+
 
 ## 3. Pozosta³e dzia³ania naprawcze
 
