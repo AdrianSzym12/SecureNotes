@@ -176,6 +176,21 @@ Zachowanie to wynika z konfiguracji pliku `Properties/launchSettings.json`, w kt
 "launchUrl": ""
 ```
 
+### 7.1. Klonowanie repozytorium
+
+1. Otwórz repozytorium SecureNotes na GitHubie.
+2. Kliknij zielony przycisk **Code**.
+3. W zakładce **HTTPS** skopiuj adres repozytorium.
+4. Uruchom **Visual Studio 2022**.
+5. Na ekranie startowym wybierz **Clone a repository (Klonuj repozytorium)**.
+6. W polu **Repository location** wklej skopiowany adres GitHub.
+7. W polu **Path** wybierz folder, w którym projekt ma zostać zapisany.
+8. Kliknij **Clone (Klonuj)** i poczekaj na pobranie projektu.
+9. Otwórz rozwiązanie SecureNotes w Visual Studio.
+10. W menu **Git → Manage Branches** znajdź gałąź `develop`, kliknij ją prawym przyciskiem myszy i wybierz **Checkout**. Jeżeli gałąź jest widoczna tylko w sekcji zdalnej, wybierz `origin/develop` i utwórz z niej lokalną gałąź.
+
+Po wykonaniu tych czynności projekt jest pobrany i gotowy do konfiguracji środowiska oraz uruchomienia.
+
 Port `7028` jest adresem wykorzystywanym w lokalnym środowisku projektowym. W innej konfiguracji może mieć inną wartość.
 
 ## 8. Swagger UI
