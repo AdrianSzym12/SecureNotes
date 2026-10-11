@@ -90,7 +90,7 @@ Badane odpowiedzi API otrzymuj¹ `Cache-Control: no-store`, natomiast sprawdzony 
 
 ---
 
-## 4. REM-02 — Konfiguracja HSTS
+## 3. REM-02 — Konfiguracja HSTS
 
 ### Problem wykryty podczas audytu
 
@@ -168,7 +168,7 @@ Data retestu: 11.10.2026.
 
 ---
 
-## 5. REM-03 — Ocena ograniczeñ œrodowiska Development
+## 4. REM-03 — Ocena ograniczeñ œrodowiska Development
 
 ### ASP.NET Core Browser Refresh
 
@@ -198,7 +198,7 @@ Nie stwierdzono potrzeby modyfikowania globalnej polityki CSP. Nie wprowadzono z
 
 ---
 
-## 6. ZAP-02 — Kontrolna analiza pasywna po naprawach
+## 5. ZAP-02 — Kontrolna analiza pasywna po naprawach
 
 ### Cel
 
@@ -210,15 +210,15 @@ Nie wykonywano Active Scan, Spider ani fuzzingu.
 
 ### Wyniki porównawcze
 
-| Kategoria alertu | ZAP-01 | ZAP-02 | Ocena |
-|---|---|---|---|
-| Cross-Domain Misconfiguration | Wystêpowa³ | Wystêpuje | Zewnêtrzna domena Edge — poza zakresem |
-| Strict-Transport-Security Header Not Set | Wystêpowa³ | Wystêpuje | Lokalny Development; zgodne z konfiguracj¹ HSTS |
-| X-Content-Type-Options Header Missing | 3 wyst¹pienia | 2 wyst¹pienia | W ZAP-02 wy³¹cznie zewnêtrzne domeny |
-| Authentication Request Identified | Wystêpowa³ | Wystêpuje | Informacyjne rozpoznanie endpointu logowania |
-| Information Disclosure – Suspicious Comments | Wystêpowa³ | Nie wystêpuje na liœcie | Nie zaobserwowano ponownie alertu dotycz¹cego Browser Refresh |
-| Re-examine Cache-control Directives | Wystêpowa³ | Wystêpuje | Zweryfikowano indywidualnie odpowiedzi API |
-| Session Management Response Identified | 3 wyst¹pienia | 3 wyst¹pienia | Informacyjne rozpoznanie mechanizmów sesyjnych |
+|               Kategoria alertu                |   ZAP-01      |       ZAP-02              |                       Ocena                                   |
+|-----------------------------------------------|---------------|---------------------------|---------------------------------------------------------------|
+| Cross-Domain Misconfiguration                 | Wystêpowa³    | Wystêpuje                 | Zewnêtrzna domena Edge — poza zakresem                        |
+| Strict-Transport-Security Header Not Set      | Wystêpowa³    | Wystêpuje                 | Lokalny Development; zgodne z konfiguracj¹ HSTS               |
+| X-Content-Type-Options Header Missing         | 3 wyst¹pienia | 2 wyst¹pienia             | W ZAP-02 wy³¹cznie zewnêtrzne domeny                          |
+| Authentication Request Identified             | Wystêpowa³    | Wystêpuje                 | Informacyjne rozpoznanie endpointu logowania                  |
+| Information Disclosure – Suspicious Comments  | Wystêpowa³    | Nie wystêpuje na liœcie   | Nie zaobserwowano ponownie alertu dotycz¹cego Browser Refresh |
+| Re-examine Cache-control Directives           | Wystêpowa³    | Wystêpuje                 | Zweryfikowano indywidualnie odpowiedzi API                    |
+| Session Management Response Identified        | 3 wyst¹pienia | 3 wyst¹pienia             | Informacyjne rozpoznanie mechanizmów sesyjnych                |
 
 ### Weryfikacja Cache-Control
 
@@ -262,25 +262,244 @@ Wszystkie materia³y przeznaczone do repozytorium powinny byæ pozbawione wartoœci
 
 Kontrolna analiza pasywna potwierdzi³a skutecznoœæ poprawki Cache-Control dla badanej odpowiedzi zawieraj¹cej prywatne notatki.
 
-Liczba zaobserwowanych kategorii alertów zmieni³a siê z siedmiu podczas ZAP-01 do szeœciu podczas ZAP-02. Wynik ten dotyczy zakresu ruchu przechwyconego w obu sesjach i nie stanowi dowodu wyeliminowania wszystkich mo¿liwych podatnoœci.
+Liczba zaobserwowanych kategorii alertów zmieni³a siê z siedmiu podczas ZAP-01 do szeœciu podczas ZAP-02. Wynik ten dotyczy zakresu ruchu przechwyconego w obu sesjach i 
+    nie stanowi dowodu wyeliminowania wszystkich mo¿liwych podatnoœci.
 
 **Data retestu:** 11.10.2026.
 
 ---
 
+## 6. Rozszerzone testy bezpieczeñstwa HTTP — ZAP-03–ZAP-06
 
+### 6.1. Cel i zakres
 
-## 3. Pozosta³e dzia³ania naprawcze
+Po zakoñczeniu kontrolnej analizy pasywnej ZAP-02 przeprowadzono dodatkowe testy bezpieczeñstwa aplikacji SecureNotes przy u¿yciu OWASP ZAP 2.17.0.
+
+Zakres rozszerzono o:
+- kontrolê odpowiedzi na metodê OPTIONS i nag³ówków CORS;
+- obs³ugê b³êdów HTTP oraz zachowanie nag³ówków bezpieczeñstwa;
+- kontrolê dostêpnoœci wybranych plików konfiguracyjnych i zasobów diagnostycznych;
+- ograniczony Spider s³u¿¹cy do automatycznego odkrywania publicznych zasobów aplikacji.
+
+Rêczne ¿¹dania wykonywano przez ZAP Requester w trybie Protected Mode. Zakres ograniczono do lokalnej aplikacji `https://localhost:7028`.
+
+Nie uruchamiano Active Scan ani fuzzingu. Nie wykonywano ponownie pe³nego zestawu wczeœniejszych scenariuszy AUTH, IDOR, CSRF i XSS.
+
+### 6.2. ZAP-03 — Kontrola OPTIONS i CORS
+
+Wys³ano ¿¹danie OPTIONS do `/api/notes`, zawieraj¹ce nag³ówki:
+
+```http
+Origin: https://example.org
+Access-Control-Request-Method: GET
+```
+
+Nie do³¹czano JWT, ciasteczek ani innych danych uwierzytelniaj¹cych.
+
+**Uzyskany wynik:**
+
+|            Element                |       Wartoœæ             |
+|-----------------------------------|---------------------------|
+| Status HTTP                       | 405 Method Not Allowed    |
+| Allow                             | GET, POST                 |
+| Access-Control-Allow-Origin       | Brak                      |
+| Access-Control-Allow-Credentials  | Brak                      |
+| Cache-Control                     | no-store                  |
+| Pozosta³e nag³ówki bezpieczeñstwa | Obecne                    |
+
+W badanym przypadku aplikacja nie zezwoli³a na udostêpnienie odpowiedzi obcemu pochodzeniu za pomoc¹ nag³ówków CORS. Sama odpowiedŸ 405 nie stanowi podatnoœci.
+
+**ZAP-03: PASS — nie wykazano niepo¿¹danej konfiguracji CORS w badanym przypadku.**
+
+![ZAP-03 — kontrola OPTIONS i CORS](screenshots/zap-retest/zap-03-options-notes.png)
+
+### 6.3. ZAP-04 — Obs³uga b³êdów HTTP
+
+Wykonano seriê rêcznych ¿¹dañ sprawdzaj¹cych odpowiedzi b³êdów, obecnoœæ nag³ówków bezpieczeñstwa oraz mo¿liwoœæ przypadkowego ujawnienia danych technicznych.
+
+|   ID    |             ¯¹danie                     |    Wynik HTTP |                        Rezultat                                                     |
+|---------|-----------------------------------------|---------------|-------------------------------------------------------------------------------------|
+| ZAP-04A | GET `/api/nonexistent-security-check`   | 404           | Pusta odpowiedŸ; nag³ówki bezpieczeñstwa obecne — PASS                              |
+| ZAP-04B | GET `/api/notes` bez uwierzytelnienia   | 401           | Brak danych prywatnych; `WWW-Authenticate: Bearer` — PASS                           |
+| ZAP-04C | GET `/api/notes/invalid-id`             | 404           | Brak ujawnienia szczegó³ów technicznych — PASS w zakresie obs³ugi b³êdnego adresu   |
+| ZAP-04D | POST `/api/notes` bez uwierzytelnienia  | 401           | ¯¹danie odrzucone; brak ujawnienia danych — PASS w zakresie odpowiedzi b³êdu        |
+| ZAP-04E | GET `/nonexistent-security-check.html`  | 404           | Pusta odpowiedŸ; nag³ówki bezpieczeñstwa obecne — PASS                              |
+
+W odpowiedziach API potwierdzono `Cache-Control: no-store`. Zachowane zosta³y równie¿ restrykcyjna polityka CSP, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` oraz pozosta³e skonfigurowane nag³ówki.
+
+W odpowiedzi 404 dla nieistniej¹cej strony HTML nie stwierdzono `Cache-Control: no-store`, co jest zgodne z zakresem poprawki REM-01 obejmuj¹cej œcie¿ki `/api`.
+
+**Ograniczenie interpretacyjne:** ¿¹danie ZAP-04C nie stanowi³o pe³nego testu walidacji identyfikatora, poniewa¿ odpowiedŸ 404 mog³a wynikaæ z niedopasowania trasy. W ZAP-04D serwer odrzuci³ nieuwierzytelnione ¿¹danie, a zamierzona niepoprawna treœæ JSON nie zosta³a przekazana jako w³aœciwe body. Nie oznaczono wiêc tego przypadku jako zaliczonego testu parsera JSON.
+
+**ZAP-04: PASS w zakresie wykonanych kontroli obs³ugi odpowiedzi b³êdów.** Nie stwierdzono ujawnienia prywatnych notatek, stosów wyj¹tków ani œcie¿ek systemowych w badanych odpowiedziach.
+
+**Materia³y dowodowe:**
+
+![ZAP-04A — nieistniej¹cy endpoint API](screenshots/zap-retest/zap-04a-api-404.png)
+
+![ZAP-04B — nieuwierzytelniony dostêp](screenshots/zap-retest/zap-04b-api-401.png)
+
+![ZAP-04C — nieprawid³owy adres notatki](screenshots/zap-retest/zap-04c-invalid-note-id.png)
+
+![ZAP-04D — odrzucone ¿¹danie POST](screenshots/zap-retest/zap-04d-post-unauthorized.png)
+
+![ZAP-04E — nieistniej¹ca strona HTML](screenshots/zap-retest/zap-04e-html-404.png)
+
+### 6.4. ZAP-05 — Kontrola udostêpniania zasobów
+
+Sprawdzono dostêpnoœæ wybranych plików konfiguracyjnych, zasobu repozytorium Git, dokumentacji OpenAPI oraz przyk³adowego endpointu diagnostycznego.
+
+¯¹dania wykonywano metod¹ GET bez uwierzytelnienia.
+
+|   ID    |         Badany zasób            | Wynik HTTP |                          Ocena                                          |
+|---------|---------------------------------|------------|-------------------------------------------------------------------------|
+| ZAP-05A | `/.env`                         | 404        | Plik nie zosta³ udostêpniony — PASS                                     |
+| ZAP-05B | `/appsettings.json`             | 404        | Konfiguracja nie zosta³a udostêpniona — PASS                            |
+| ZAP-05C | `/appsettings.Development.json` | 404        | Konfiguracja Development nie zosta³a udostêpniona — PASS                |
+| ZAP-05D | `/.git/config`                  | 404        | Konfiguracja Git nie zosta³a udostêpniona — PASS                        |
+| ZAP-05E | `/swagger/v1/swagger.json`      | 200        | Dokumentacja OpenAPI dostêpna zgodnie z konfiguracj¹ Development        |
+| ZAP-05F | `/health`                       | 404        | Nie stwierdzono udostêpnienia badanego endpointu diagnostycznego — PASS |
+
+W badanych odpowiedziach 404 nie stwierdzono ujawnienia zawartoœci plików ani szczegó³ów technicznych. Nag³ówki bezpieczeñstwa pozosta³y aktywne.
+
+Endpoint `/swagger/v1/swagger.json` zwróci³ dokument OpenAPI 3.0.1 z typem `application/json; charset=utf-8`. Potwierdzono obecnoœæ nag³ówków bezpieczeñstwa. Widoczny fragment dokumentu zawiera³ standardowe informacje o strukturze API; nie przeprowadzano pe³nego przegl¹du wszystkich wartoœci dokumentu pod k¹tem sekretów.
+
+Dostêpnoœæ OpenAPI JSON w Development potwierdza mo¿liwoœæ korzystania z dokumentacji API bez os³abiania globalnej polityki CSP na potrzeby interfejsu Swagger UI.
+
+**ZAP-05: 6/6 przypadków zgodnych z oczekiwaniami.**
+
+**Materia³y dowodowe:**
+
+![ZAP-05A — kontrola pliku .env](screenshots/zap-retest/zap-05a-env-not-exposed.png)
+
+![ZAP-05B — kontrola appsettings.json](screenshots/zap-retest/zap-05b-appsettings-not-exposed.png)
+
+![ZAP-05C — kontrola konfiguracji Development](screenshots/zap-retest/zap-05c-development-config-not-exposed.png)
+
+![ZAP-05D — kontrola konfiguracji Git](screenshots/zap-retest/zap-05d-git-config-not-exposed.png)
+
+![ZAP-05E — dokumentacja OpenAPI](screenshots/zap-retest/zap-05e-openapi-development.png)
+
+![ZAP-05F — kontrola endpointu health](screenshots/zap-retest/zap-05f-health-not-exposed.png)
+
+### 6.5. ZAP-06 — Ograniczony Spider
+
+Przeprowadzono automatyczne odkrywanie zasobów aplikacji za pomoc¹ modu³u Spider w OWASP ZAP 2.17.0.
+
+Celem testu by³o sprawdzenie publicznej struktury aplikacji SecureNotes oraz zweryfikowanie, czy ruch wygenerowany przez Spider spowoduje pojawienie siê nowych alertów analizy pasywnej.
+
+**Konfiguracja skanowania:**
+
+|   Parametr                    |           Ustawienie                                  |
+|-------------------------------|-------------------------------------------------------|
+| Tryb ZAP                      | Protected Mode                                        |
+| Punkt pocz¹tkowy              | `https://localhost:7028`                              |
+| Kontekst                      | Domyœlny kontekst, ograniczony do lokalnej aplikacji  |
+| U¿ytkownik uwierzytelniony    | Brak                                                  |
+| Maximum Depth to Crawl        | 3                                                     |
+| Maximum Children to Crawl     | 10                                                    |
+| Maximum Duration              | 2 minuty                                              |
+| Maximum Parse Size            | 2621440 bajtów                                        |
+| Accept Cookies                | Wy³¹czone                                             |
+| Process Forms                 | Wy³¹czone                                             |
+| POST Forms                    | Wy³¹czone                                             |
+| Parse HTML Comments           | W³¹czone                                              |
+| Parse robots.txt              | W³¹czone                                              |
+| Parse sitemap.xml             | W³¹czone                                              |
+| Parse SVN Metadata            | Wy³¹czone                                             |
+| Parse Git Metadata            | Wy³¹czone                                             |
+| Parse .DS_Store Files         | Wy³¹czone                                             |
+| Handle OData Parameters       | Wy³¹czone                                             |
+| Logout Avoidance              | Wy³¹czone                                             |   
+Zastosowane ograniczenia mia³y umo¿liwiæ przeszukiwanie publicznej czêœci SecureNotes bez automatycznego przetwarzania formularzy i wykonywania operacji modyfikuj¹cych notatki.
+
+#### Wynik Spidera
+
+|       WskaŸnik                | Wartoœæ |
+|-------------------------------|---------|
+| Postêp                        | 100%    |
+| URLs Found                    | 15      |
+| Nodes Added                   | 3       |
+| Aktualnie skanowane adresy    | 0       |
+
+Wszystkie 15 adresów przedstawionych na liœcie mia³o oznaczenie `Seed`, dlatego nie interpretowano tego wyniku jako odkrycia 15 nowych zasobów.
+
+W zak³adce **Added Nodes** widoczne by³y trzy wêz³y:
+
+- `/api/auth`;
+- `/api/auth/login`;
+- `/swagger/v1`.
+
+Wszystkie nale¿a³y do lokalnej aplikacji i odpowiada³y znanym obszarom SecureNotes. Nie zaobserwowano nowej, nieznanej œcie¿ki wymagaj¹cej natychmiastowej poprawki.
+
+#### Kontrola alertów po zakoñczeniu Spidera
+
+Po zakoñczeniu skanowania sprawdzono listê alertów analizy pasywnej.
+
+Nadal wystêpowa³o szeœæ kategorii:
+
+|               Kategoria                               |                                   Wynik analizy                                                   |
+|-------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| Cross-Domain Misconfiguration                         | Zg³oszenie dotycz¹ce zewnêtrznego zasobu Edge                                                     |
+| Strict-Transport-Security Header Not Set (Systemic)   | Lokalny Development oraz zasób zewnêtrzny                                                         |
+| X-Content-Type-Options Header Missing                 | Dwa wyst¹pienia dotycz¹ce domen zewnêtrznych                                                      |
+| Authentication Request Identified                     | Informacyjne rozpoznanie endpointu logowania                                                      |
+| Re-examine Cache-control Directives (Systemic)        | Wczeœniej przeanalizowany alert informacyjny; potwierdzono `no-store` dla badanych odpowiedzi API |
+| Session Management Response Identified                | Informacyjne rozpoznanie mechanizmów sesyjnych                                                    |
+
+Nie zaobserwowano nowej kategorii alertów wzglêdem ZAP-02.
+
+Nie oznacza to wyeliminowania wszystkich mo¿liwych podatnoœci — wynik odnosi siê do ograniczonego zakresu przeszukiwania oraz ruchu przeanalizowanego przez skaner pasywny.
+
+**ZAP-06: PASS — ograniczony Spider zakoñczy³ dzia³anie, a w badanym zakresie nie wykryto nowych kategorii alertów.**
+
+#### Materia³y dowodowe
+
+**Zakoñczony Spider — postêp 100%:**
+
+![ZAP-06 — zakoñczone skanowanie Spider](screenshots/zap-retest/zap-06-spider-completed.png)
+
+**Trzy wêz³y dodane do drzewa aplikacji:**
+
+![ZAP-06 — Added Nodes](screenshots/zap-retest/zap-06-spider-added-nodes.png)
+
+**Koñcowa lista alertów analizy pasywnej:**
+
+![ZAP-06 — lista alertów po zakoñczeniu Spidera](screenshots/zap-retest/zap-06-final-alerts.png)
 
 ---
 
-## 5. Pozosta³e dzia³ania
+### 7.6. Podsumowanie rozszerzonej serii testów
 
-Po zakoñczeniu REM-01 i REM-02 do dalszej weryfikacji pozostaj¹:
+W ramach dodatkowej weryfikacji po dzia³aniach naprawczych wykonano cztery scenariusze ZAP-03–ZAP-06.
 
-1. Sprawdzenie dzia³ania aplikacji i nag³ówków bezpieczeñstwa bez pomocniczego mechanizmu ASP.NET Core Browser Refresh.
-2. Ocena ograniczenia dotycz¹cego Swagger UI przy restrykcyjnej polityce CSP.
-3. Koñcowe testy regresyjne po wszystkich zmianach.
-4. Weryfikacja konfiguracji rzeczywistego œrodowiska Production przed wdro¿eniem, w tym HTTPS i HSTS.
+| Scenariusz |                  Zakres                                  |                   Wynik koñcowy                       |
+|------------|----------------------------------------------------------|-------------------------------------------------------|
+| ZAP-03     | Metoda OPTIONS i nag³ówki CORS                           | PASS                                                  |
+| ZAP-04     | Obs³uga b³êdów HTTP i kontrola nag³ówków bezpieczeñstwa  | PASS w zakresie wykonanych przypadków                 |
+| ZAP-05     | Dostêpnoœæ wybranych plików i zasobów diagnostycznych    | 6/6 wyników zgodnych z oczekiwaniami                  |
+| ZAP-06     | Ograniczony Spider i kontrola alertów pasywnych          | PASS — skan zakoñczony, bez nowych kategorii alertów  |
 
-Pierwotne wyniki audytu pozostaj¹ dostêpne w `results.md` i nie zosta³y nadpisane.
+#### Najwa¿niejsze wnioski
+
+1. W badanym ¿¹daniu OPTIONS nie stwierdzono niepo¿¹danego udostêpnienia endpointu `/api/notes` obcemu pochodzeniu za pomoc¹ nag³ówków CORS.
+2. Odpowiedzi b³êdów HTTP zachowa³y skonfigurowane nag³ówki bezpieczeñstwa. W badanych przypadkach nie stwierdzono ujawnienia prywatnych notatek, stosów wyj¹tków ani wewnêtrznych œcie¿ek systemowych.
+3. Wybrane pliki konfiguracyjne i zasoby repozytorium nie by³y publicznie udostêpniane przez HTTP.
+4. Dokumentacja OpenAPI JSON by³a dostêpna zgodnie z konfiguracj¹ œrodowiska Development, bez koniecznoœci os³abiania globalnej polityki CSP.
+5. Ograniczony Spider zakoñczy³ dzia³anie i nie spowodowa³ pojawienia siê nowych kategorii alertów pasywnych wzglêdem ZAP-02.
+6. Nie zidentyfikowano nowego problemu wymagaj¹cego natychmiastowej modyfikacji kodu SecureNotes.
+
+#### Ograniczenia testów
+
+Wyniki dotycz¹ wy³¹cznie sprawdzonych endpointów, wybranych œcie¿ek i skonfigurowanego zakresu Spidera.
+
+Spider nie korzysta³ z uwierzytelnionej sesji u¿ytkownika. Wy³¹czono przyjmowanie ciasteczek oraz automatyczne przetwarzanie i wysy³anie formularzy.
+
+Nie przeprowadzano Active Scan ani fuzzingu.
+
+Zakoñczenie rozszerzonej serii testów nie jest równoznaczne z potwierdzeniem ca³kowitej odpornoœci aplikacji na wszystkie mo¿liwe zagro¿enia.
+
+**Ocena koñcowa ZAP-03–ZAP-06: PASS w zakresie wykonanych testów i udokumentowanych wyników.**
+
+**Data wykonania:** 11.10.2026.
+
