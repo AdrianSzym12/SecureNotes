@@ -15,24 +15,49 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 
 ## 1. Podsumowanie wyników
 
-| ID | Obszar | Oczekiwany wynik | Rzeczywisty wynik | Ocena |
-|---|---|---|---|---|
-| AUTH-01 | Dostęp do notatek bez sesji | HTTP 401 | HTTP 401 Unauthorized | PASS |
-| AUTH-02 | Dostęp do /api/auth/me bez sesji | HTTP 401 | HTTP 401 Unauthorized | PASS |
-| AUTH-03 | Dostęp do notatek po logowaniu | HTTP 200 | HTTP 200 OK | PASS |
-| AUTH-04 | Dostęp do notatek po wylogowaniu | HTTP 401 | HTTP 401 Unauthorized | PASS |
-| IDOR-01 | Odczyt cudzej notatki | HTTP 404 | HTTP 404 Not Found | PASS |
-| IDOR-02 | Edycja cudzej notatki | HTTP 404, brak zmiany danych | HTTP 404, notatka niezmieniona | PASS |
-| IDOR-03 | Usunięcie cudzej notatki | HTTP 404, notatka nadal istnieje | HTTP 404, notatka zachowana | PASS |
-| CSRF-01 | Brak tokenu CSRF | HTTP 400 | HTTP 400, notatka nieutworzona | PASS |
-| CSRF-02 | Nieprawidłowy token CSRF | HTTP 400 | HTTP 400, notatka nieutworzona | PASS |
-| CSRF-03 | Prawidłowy token CSRF | HTTP 201 | HTTP 201, notatka utworzona | PASS |
-| XSS-01 | Stored XSS w treści notatki | Brak wykonania JS, HTML jako tekst | Payload wyświetlony jako tekst, brak wykonania JS | PASS |
-| HEAD-01 | Nagłówek Content-Security-Policy | CSP obecny i zgodny z konfiguracją | CSP obecny, dyrektywy zgodne | PASS |
-| HEAD-02 | Nagłówek X-Content-Type-Options | nosniff | nosniff | PASS |
-| HEAD-03 | Nagłówek X-Frame-Options | DENY | DENY | PASS |
-| COOKIE-01 | Właściwości ciasteczka sesyjnego | HttpOnly, Secure, SameSite=Strict | Do sprawdzenia | NOT RUN |
-| ZAP-01 | OWASP ZAP | Analiza i udokumentowanie ustaleń | Do sprawdzenia | NOT RUN |
+|	 ID		|               Obszar						|         Oczekiwany wynik				|                 Rzeczywisty wynik					| Ocena |
+|-----------|-------------------------------------------|---------------------------------------|---------------------------------------------------|------|
+| AUTH-01	| Dostęp do notatek bez sesji				| HTTP 401								| HTTP 401 Unauthorized								| PASS |
+| AUTH-02	| Dostęp do /api/auth/me bez sesji			| HTTP 401								| HTTP 401 Unauthorized								| PASS |
+| AUTH-03	| Dostęp do notatek po logowaniu			| HTTP 200								| HTTP 200 OK										| PASS |
+| AUTH-04	| Dostęp do notatek po wylogowaniu			| HTTP 401								| HTTP 401 Unauthorized								| PASS |
+| IDOR-01	| Odczyt cudzej notatki						| HTTP 404								| HTTP 404 Not Found								| PASS |
+| IDOR-02	| Edycja cudzej notatki						| HTTP 404, brak zmiany danych			| HTTP 404, notatka niezmieniona					| PASS |
+| IDOR-03	| Usunięcie cudzej notatki					| HTTP 404, notatka nadal istnieje		| HTTP 404, notatka zachowana						| PASS |
+| CSRF-01	| Brak tokenu CSRF							| HTTP 400								| HTTP 400, notatka nieutworzona					| PASS |
+| CSRF-02	| Nieprawidłowy token CSRF					| HTTP 400								| HTTP 400, notatka nieutworzona					| PASS |
+| CSRF-03	| Prawidłowy token CSRF						| HTTP 201								| HTTP 201, notatka utworzona						| PASS |
+| XSS-01	| Stored XSS w treści notatki				| Brak wykonania JS, HTML jako tekst	| Payload wyświetlony jako tekst, brak wykonania JS | PASS |
+| HEAD-01	| Nagłówek Content-Security-Policy			| CSP obecny i zgodny z konfiguracją	| CSP obecny, dyrektywy zgodne						| PASS |
+| HEAD-02	| Nagłówek X-Content-Type-Options			| nosniff								| nosniff											| PASS |
+| HEAD-03	| Nagłówek X-Frame-Options					| DENY									| DENY												| PASS |
+| COOKIE-01 | Atrybuty ciasteczka uwierzytelniającego	| HttpOnly, Secure, SameSite=Strict		| Wszystkie trzy atrybuty potwierdzone				| PASS |
+| ZAP-01	| OWASP ZAP									| Analiza i udokumentowanie ustaleń		| Do sprawdzenia									| NOT RUN |
+
+---
+
+### Podsumowanie dotychczas wykonanych testów
+
+Dotychczas wykonano piętnaście scenariuszy końcowego audytu bezpieczeństwa SecureNotes.
+
+|	Grupa				|	Wynik		|
+|-----------------------|---------------|
+| AUTH-01–AUTH-04		| 4/4 PASS		|
+| IDOR-01–IDOR-03		| 3/3 PASS		|
+| CSRF-01–CSRF-03		| 3/3 PASS		|
+| XSS-01				| 1/1 PASS		|
+| HEAD-01–HEAD-03		| 3/3 PASS		|
+| COOKIE-01				| 1/1 PASS		|
+| **Łącznie wykonane**	| **15/15 PASS**|
+
+Testy potwierdziły poprawne działanie badanych mechanizmów uwierzytelniania, kontroli dostępu do notatek, ochrony CSRF, 
+	bezpiecznego wyświetlania testowej treści HTML/JavaScript oraz wybranych nagłówków bezpieczeństwa.
+
+Potwierdzono również, że ciasteczko uwierzytelniające `SecureNotes.Auth` posiada atrybuty `HttpOnly`, `Secure` i `SameSite=Strict`.
+
+Wszystkie dotychczas wykonane scenariusze zostały udokumentowane zrzutami ekranu i otrzymały ocenę PASS.
+
+Do zakończenia audytu pozostaje test ZAP-01. Wynik 15/15 odnosi się wyłącznie do już wykonanych scenariuszy.
 
 ---
 
@@ -152,7 +177,7 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 
 ---
 
-## 3. Pozostałe grupy testów
+## 3. Szczegółowe wyniki pozostałych grup testów
 
 
 ### IDOR-01 — Próba odczytu notatki innego użytkownika
@@ -501,8 +526,45 @@ Dokument zawiera wyniki rzeczywiście wykonanych testów. Scenariusze oczekując
 			Test zweryfikował obecność i wartość nagłówka w rzeczywistej odpowiedzi HTTP. Nie przeprowadzano osobnego testu próby osadzenia aplikacji wewnątrz elementu iframe.
 
 
-Szczegółowe opisy i dowody testów IDOR, CSRF, XSS, nagłówków bezpieczeństwa, ciasteczek oraz OWASP ZAP zostaną dodane w kolejnych etapach audytu.
+---
+
+### COOKIE-01 — Weryfikacja atrybutów ciasteczka uwierzytelniającego
+
+**Cel:** sprawdzenie, czy ciasteczko uwierzytelniające `SecureNotes.Auth` posiada właściwe atrybuty bezpieczeństwa: `HttpOnly`, `Secure` oraz `SameSite=Strict`.
+
+**Warunki początkowe:** uruchomiona aplikacja SecureNotes pod adresem HTTPS, aktywne mechanizmy bezpieczeństwa oraz dostępne konto testowe A.
+
+**Przebieg:**
+1. Otworzono aplikację SecureNotes w przeglądarce Opera GX.
+2. Wylogowano się, a następnie ponownie zalogowano na konto testowe A.
+3. Uruchomiono Opera GX DevTools i otworzono zakładkę Application → Storage → Cookies.
+4. Wybrano domenę `https://localhost:7028` i odnaleziono ciasteczko `SecureNotes.Auth`.
+5. Sprawdzono ustawienia `HttpOnly`, `Secure` oraz `SameSite`.
+6. Przygotowano zrzut ekranu dokumentujący atrybuty ciasteczka, zakrywając jego rzeczywistą wartość.
+
+**Oczekiwany wynik:** ciasteczko `SecureNotes.Auth` ma włączone `HttpOnly` i `Secure`, a jego atrybut `SameSite` ma wartość `Strict`.
+
+**Wynik rzeczywisty:** W DevTools potwierdzono, że ciasteczko `SecureNotes.Auth` posiada aktywne atrybuty `HttpOnly` i `Secure` oraz ustawienie `SameSite=Strict`.
+
+**Ocena:** PASS.
+
+**Dowód:** `screenshots/headers/cookie-01-auth-cookie-flags.png`
+
+![COOKIE-01 — atrybuty bezpieczeństwa ciasteczka SecureNotes.Auth](screenshots/headers/cookie-01-auth-cookie-flags.png)
+
+**Data wykonania:** 11.10.2026.
+
+**Uwagi:** Wartość ciasteczka zawierająca token JWT została zakryta na materiale dowodowym. Test potwierdza konfigurację atrybutów ciasteczka w przeglądarce. 
+			Nie stanowi osobnego testu wszystkich możliwych scenariuszy kradzieży lub ponownego użycia tokenu sesyjnego.
+
+
+---
+
+
+
+
 
 ## 4. Znane ograniczenia
 
-Swagger UI wyświetla obecnie pustą stronę przy aktywnej restrykcyjnej polityce CSP. `SecurityHeadersMiddleware` pozostaje włączony. Ograniczenie zostało opisane w głównym README projektu.
+Swagger UI wyświetla obecnie pustą stronę przy aktywnej restrykcyjnej polityce CSP. `SecurityHeadersMiddleware` pozostaje włączony. 
+Ograniczenie zostało opisane w głównym README projektu.
