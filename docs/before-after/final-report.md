@@ -2,7 +2,7 @@
 
 **Robocza wersja merytoryczna, 16.10.2026.** Przedmiot: Bezpieczeństwo aplikacji internetowych. Temat: kontrolowana rekonstrukcja Stored XSS i CSRF oraz analiza istniejących zabezpieczeń przeglądarki i API.
 
-Bazowy commit: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Ustalenia statyczne: `VERIFIED`; zmiany: `PLANNED`; wszystkie nowe testy: `NOT RUN`. Ten dokument nie jest raportem z zakończonego eksperymentu. **DO UZUPEŁNIENIA PO TESTACH:** wyniki empiryczne, dowody i ostateczna ocena porównawcza.
+Bazowy commit: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Ustalenia statyczne: `VERIFIED`; cztery zmiany implementacyjne: `PLANNED`; wszystkie 15 scenariuszy bezpieczeństwa: `NOT RUN`. Wyniki konfiguracji laboratorium potwierdzone przez użytkownika w 04D opisano oddzielnie. Ten dokument nie jest raportem z zakończonego eksperymentu XSS/CSRF. **DO UZUPEŁNIENIA PO TESTACH:** wyniki bezpieczeństwa, dowody i ostateczna ocena porównawcza.
 
 ## 1. Wprowadzenie
 
@@ -28,9 +28,19 @@ Projekty deklarują .NET 8, ASP.NET Core, EF Core i Pomelo. Frontend to HTML/CSS
 
 Profile uruchomienia deklarują HTTPS na localhost:7028 oraz HTTP na localhost:5070. Badania mają używać HTTPS i zaufanego certyfikatu. Druga strona na localhost:7443 zapewni inny origin, zachowując ten sam site. Dane i sesje wariantów muszą być rozdzielone; rekomendowane jest uruchamianie kolejno na tym samym adresie aplikacji i korzystanie z osobnych profili przeglądarki.
 
-Start Development automatycznie uruchamia migracje. Z tego powodu nawet uruchomienie w celu diagnostycznym wymaga uprzedniego potwierdzenia docelowej bazy. Oba worktree mają wspólny identyfikator User Secrets API, więc sam podział katalogów nie gwarantuje izolacji danych. Procedurę nadpisania konfiguracji procesu lub odtwarzania bazy trzeba ustalić przed próbami. Nie odczytywano wartości sekretów ani nie uruchamiano środowiska w tym etapie.
+Start Development automatycznie uruchamia migracje. Z tego powodu nawet uruchomienie w celu diagnostycznym wymaga uprzedniego potwierdzenia docelowej bazy. Oba worktree mają wspólny identyfikator User Secrets API, więc sam podział katalogów nie gwarantuje izolacji danych. Aktualizacja 04A przyjmuje istniejące, gotowe AFTER z `securenotes_db`, testy automatyczne z `securenotes_test_db` i jedyną nową bazę `securenotes_before_lab` dla BEFORE. Nie przygotowujemy drugiego środowiska AFTER. W 04A utworzono pustą bazę BEFORE (`utf8mb4`, `utf8mb4_general_ci`, 0 tabel), bez migracji, kont i uprawnień; oryginalnych baz nie modyfikowano. Przyszłe procesowe `Api__Database=securenotes_before_lab` dotyczy wyłącznie BEFORE. Nie odczytywano wartości sekretów ani nie uruchamiano środowiska w tym etapie; przygotowanie bazy nie jest wynikiem żadnego z 15 testów demonstracyjnych.
 
 Szczegóły narzędzi, danych i kolejności startu znajdują się w [environment.md](environment.md). **DO UZUPEŁNIENIA PO TESTACH:** rzeczywiste wersje narzędzi, sposób izolacji, potwierdzone porty, certyfikaty i protokół uruchomienia.
+
+### 3.1. Potwierdzone przygotowanie BEFORE — aktualizacja 04D
+
+Użytkownik rzeczywiście przetestował automatyzację na jednym komputerze Windows/PowerShell z MariaDB/XAMPP. setup-before.ps1 -WhatIf połączył się, wykrył istniejącą bazę i zaplanował konto bez modyfikacji SQL oraz bez pobrania nowego hasła (PASS). Zwykły setup utworzył sn_before_lab@127.0.0.1 z siedmioma prawami wyłącznie do securenotes_before_lab, bez DROP, GRANT OPTION i praw globalnych poza technicznym USAGE. Kontrola SHOW GRANTS była poprawna, istniejących danych nie usunięto (PASS). Verify przed migracją dał PASS dla .NET 8, konta/połączenia, kodowania/kolacji i grantów; NOT READY tabel odpowiadało oczekiwanemu etapowi pustej bazy.
+
+Pierwszy start w Development wykonał istniejące migracje EF Core: powstały notes, users i __efmigrationshistory oraz potwierdzono 20261008210341_InitialCreate. Użytkownik potwierdził logowanie, zapis/odczyt notatek i ich dostępność po restarcie (PASS). Po uproszczeniu start-before.ps1 ponownie uzyskał PASS: dokładnie jeden maskowany monit, cel 127.0.0.1:3306 / securenotes_before_lab / sn_before_lab, ostrzeżenie o migracjach, wymagane START BEFORE, HTTPS localhost:7028 i Development. EF Core zgłosił: „No migrations were applied. The database is already up to date.”
+
+Są to wyniki przekazane przez użytkownika w Prompt 04D, nie wykonania Codexa. Nie przypisujemy PASS odtworzeniu na innym komputerze ani dodatkowym kontrolom niezgłoszonym przez użytkownika, w tym odrębnej próbie -VerifyDatabase po uproszczeniu. Instrukcję odtworzenia i tabelę rezultatów zawiera [environment.md](environment.md), a szczegóły obsługi haseł i IDE [scripts/lab/README.md](../../scripts/lab/README.md). Zwykły start nie uruchamia klienta SQL; opcja -VerifyDatabase włącza dodatkową diagnostykę i monity. Nie dodano drugiego mechanizmu migracji. Wcześniejszy opis pustej bazy odnosi się do 04A, nie stanu po uruchomieniach użytkownika.
+
+Archiwizacja screenshotów i metryk prób pozostaje do wykonania; nie utworzono fikcyjnych ID ani nazw plików. Wyniki konfiguracji nie są testami skuteczności XSS/CSRF: wszystkie 15 scenariuszy ma NOT RUN, a CHG-XSS-01/02 i CHG-CSRF-01/02 nadal PLANNED. Końcowe wnioski bezpieczeństwa wymagają późniejszych doświadczeń.
 
 ## 4. Architektura i mechanizmy istniejące
 
@@ -116,7 +126,7 @@ Wybrane scenariusze nie stanowią pełnego audytu ASVS ani podstawy do zadeklaro
 
 ## 11. Ograniczenia badania
 
-Obecnie nie ma nowych wyników wykonawczych. Historyczny wynik 85/85 w README i wcześniejsze zrzuty audytowe nie są wynikami tej serii. Testy API HSTS budują odrębny TestServer i nie dowodzą działania całego pipeline. Testy infrastruktury korzystają z bazy i migracji, dlatego ich uruchomienie wymaga osobnej kontroli środowiska.
+Obecnie nie ma wyników wykonawczych 15 scenariuszy bezpieczeństwa. Potwierdzenia konfiguracji w 04D dotyczą gotowości jednego laboratorium, nie skuteczności zabezpieczeń XSS/CSRF. Historyczny wynik 85/85 w README i wcześniejsze zrzuty audytowe nie są wynikami tej serii. Testy API HSTS budują odrębny TestServer i nie dowodzą działania całego pipeline. Testy infrastruktury korzystają z bazy i migracji, dlatego ich uruchomienie wymaga osobnej kontroli środowiska.
 
 Prywatny model notatek ogranicza możliwość dostarczenia payloadu innemu użytkownikowi. Demonstracja CSRF wymaga same-site originu, nie dowodzi obejścia SameSite i dodaje obsługę formularza tylko w BEFORE. Jednoczesna zmiana renderera i CSP nie izoluje każdej bariery, dlatego zaplanowano etap pośredni. Nie testujemy wszystkich przeglądarek, wejść, zależności ani wdrożenia Production. Potencjalne skutki XSS są szersze niż nieszkodliwy payload, ale nie są empirycznie wykazywane.
 

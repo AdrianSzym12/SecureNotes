@@ -22,9 +22,11 @@ Bazowy commit obu wersji: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 - `NOT RUN` — test niewykonany. Oczekiwany wynik jest hipotezą, nie obserwacją.
 - `DO WERYFIKACJI` — informacja wymagająca dodatkowego źródła lub decyzji.
 
-**Aktualnie VERIFIED:** oba branche mają podany HEAD; przed utworzeniem dokumentacji ich status był czysty, a różnica zatwierdzonego kodu pusta. Oba warianty mają dziś te same zabezpieczenia. Cztery zmiany rekonstrukcyjne mają status `PLANNED`; wszystkie 15 nowych scenariuszy ma status `NOT RUN`. Codex w etapach dokumentacyjnych nie uruchamiał aplikacji, migracji ani testów.
+**Aktualnie VERIFIED:** podany SHA pozostaje bazą kodu i HEAD referencji develop; branch BEFORE zawiera ponadto commity dokumentacji i laboratorium. Przy bazowym SHA kod obu wariantów był identyczny. Kod zabezpieczeń nadal nie został zmieniony. Cztery zmiany rekonstrukcyjne mają status `PLANNED`; wszystkie 15 scenariuszy bezpieczeństwa ma status `NOT RUN`. Codex w 04D nie uruchamiał aplikacji, SQL, migracji ani testów.
 
-**Potwierdzenie użytkownika — 03B:** referencyjne AFTER uruchomione z `develop` w Visual Studio 2022 działa z MariaDB/XAMPP i zapisuje notatki. Użytkownik zgłosił wynik testów automatycznych **85/85 (0 nieudanych, 0 pominiętych)** oraz obecność istniejących baz i tabel w phpMyAdmin. To nie są wyniki demonstracyjnych scenariuszy ani testy wykonane przez Codexa. Screenshotom nie przypisano jeszcze zarchiwizowanych plików lub ID. Szczegóły i miejsca do uzupełnienia są w [opisie środowiska](environment.md). Preferowany plan laboratorium używa nowych baz `securenotes_before_lab` i `securenotes_after_lab`, bez modyfikowania istniejących `securenotes_db` i `securenotes_test_db`.
+**Potwierdzenie użytkownika — 03B:** referencyjne AFTER uruchomione z `develop` w Visual Studio 2022 działa z MariaDB/XAMPP i zapisuje notatki. Użytkownik zgłosił wynik testów automatycznych **85/85 (0 nieudanych, 0 pominiętych)** oraz obecność istniejących baz i tabel w phpMyAdmin. To nie są wyniki demonstracyjnych scenariuszy ani testy wykonane przez Codexa. Screenshotom nie przypisano jeszcze zarchiwizowanych plików lub ID. Szczegóły i miejsca do uzupełnienia są w [opisie środowiska](environment.md).
+
+**Uproszczenie środowiska — 04A:** AFTER pozostaje gotową referencją z `securenotes_db`; nie tworzymy dla niego dodatkowej bazy ani środowiska. Dla BEFORE utworzono wyłącznie `securenotes_before_lab`, potwierdzając `utf8mb4`, `utf8mb4_general_ci` i brak tabel. Nie wykonano migracji ani nadania uprawnień. Istniejące `securenotes_db` i `securenotes_test_db` pozostały poza zakresem zmian; druga zachowuje rolę bazy testów automatycznych. BEFORE jest wariantem przeznaczonym do celowej rekonstrukcji, lecz podatności nadal są tylko planowane. Wszystkie 15 scenariuszy pozostaje `NOT RUN`.
 
 ## Scenariusze
 
@@ -35,6 +37,8 @@ Bazowy commit obu wersji: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 **CSRF B:** formularz bez tokenu ze strony `https://localhost:7443` do aplikacji `https://localhost:7028`. Są to różne originy, lecz ten sam site. Obsługa formularza będzie dodana wyłącznie w BEFORE jako powierzchnia laboratoryjna. Odrzucenia formularza przez AFTER nie przypisujemy wyłącznie Antiforgery: AFTER nie obsługuje tego formatu w tej akcji.
 
 ## Organizacja dokumentacji
+
+[Instrukcja skryptów laboratorium](../../scripts/lab/README.md) opisuje setup-before.ps1, start-before.ps1 i verify-before.ps1. W 04D użytkownik potwierdził PASS dla WhatIf bez zmian SQL, setupu z ograniczonym kontem oraz pierwszego startu i migracji. Verify przed migracją potwierdził .NET 8, dostęp, parametry i granty; NOT READY tabel było oczekiwane. Ponowne uruchomienie uproszczonym startem z jednym maskowanym hasłem, START BEFORE i HTTPS/Development zakończyło się PASS, z bazą aktualną według komunikatu EF Core. Logowanie, zapis/odczyt i trwałość danych po restarcie zostały potwierdzone przez użytkownika. Pełny zakres obserwacji jest w [environment.md](environment.md); nie są to próby wykonane przez Codexa ani wyniki 15 scenariuszy bezpieczeństwa. Nie potwierdzono odtworzenia na drugim komputerze ani osobnego przebiegu -VerifyDatabase po uproszczeniu. Archiwizacja screenshotów, dat i metryk prób pozostaje otwarta, bez fikcyjnych nazw/ID.
 
 | Dokument | Zawartość |
 |---|---|
