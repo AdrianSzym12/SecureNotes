@@ -60,8 +60,11 @@ SecureNotes/
 ├── SecureNotes.Domain.Tests/
 │   └── Testy logiki domenowej
 │
-└── SecureNotes.Infrastructure.Tests/
-    └── Testy infrastruktury i integracji
+├── SecureNotes.Infrastructure.Tests/
+│   └── Testy infrastruktury i integracji
+│
+└── database/
+    └── setup.sql
 ```
 
 Takie podejście pozwala ograniczyć zależność najważniejszej logiki aplikacji od bazy danych, interfejsu użytkownika i frameworków.
@@ -155,26 +158,10 @@ Do lokalnego uruchomienia projektu potrzebne są:
 - .NET 8 SDK;
 - MariaDB;
 - XAMPP lub inna lokalna instalacja MariaDB;
+- dostęp do phpMyAdmin lub innego klienta MariaDB;
 - przeglądarka internetowa obsługująca HTTPS i JavaScript.
 
 ## 7. Uruchamianie aplikacji
-
-1. Sklonuj repozytorium i otwórz rozwiązanie SecureNotes w Visual Studio 2022.
-2. Uruchom MariaDB.
-3. Skonfiguruj połączenie z bazą danych oraz wymagane ustawienia JWT.
-4. Dane wrażliwe, w szczególności hasła do bazy i klucz JWT, przechowuj poza repozytorium, np. w Visual Studio User Secrets.
-5. Ustaw `SecureNotes.API` jako projekt startowy.
-6. Uruchom aplikację przy użyciu HTTPS, naciskając F5.
-
-Domyślnie otwierana jest strona główna:
-
-`https://localhost:7028/`
-
-Zachowanie to wynika z konfiguracji pliku `Properties/launchSettings.json`, w którym ustawiono:
-
-```json
-"launchUrl": ""
-```
 
 ### 7.1. Klonowanie repozytorium
 
@@ -189,9 +176,106 @@ Zachowanie to wynika z konfiguracji pliku `Properties/launchSettings.json`, w kt
 9. Otwórz rozwiązanie SecureNotes w Visual Studio.
 10. W menu **Git → Manage Branches** znajdź gałąź `develop`, kliknij ją prawym przyciskiem myszy i wybierz **Checkout**. Jeżeli gałąź jest widoczna tylko w sekcji zdalnej, wybierz `origin/develop` i utwórz z niej lokalną gałąź.
 
-Po wykonaniu tych czynności projekt jest pobrany i gotowy do konfiguracji środowiska oraz uruchomienia.
+### 7.2. Przygotowanie baz danych
 
-Port `7028` jest adresem wykorzystywanym w lokalnym środowisku projektowym. W innej konfiguracji może mieć inną wartość.
+Przed pierwszym uruchomieniem aplikacji należy przygotować lokalne bazy MariaDB.
+
+W repozytorium znajduje się skrypt:
+
+`database/setup.sql`
+
+Skrypt tworzy dwie bazy danych:
+
+| Baza danych | Przeznaczenie |
+|---|---|
+| `securenotes_db` | Główna baza aplikacji |
+| `securenotes_test_db` | Oddzielna baza testów automatycznych |
+
+Tworzy również lokalnego użytkownika MariaDB `securenotes_migrator` i nadaje mu uprawnienia ograniczone do obu wskazanych baz.
+
+**Instrukcja wykonania:**
+
+1. Uruchom MariaDB, np. za pomocą XAMPP.
+2. Otwórz phpMyAdmin i zaloguj się jako administrator MariaDB.
+3. Otwórz plik `database/setup.sql`.
+4. Skopiuj jego zawartość do zakładki **SQL** w phpMyAdmin.
+5. Przed wykonaniem zastąp `UZUPELNIJ_WLASNE_HASLO` własnym hasłem użytkownika `securenotes_migrator`.
+6. Kliknij **Wykonaj / Go**.
+7. Sprawdź, czy obie bazy zostały utworzone, a zapytanie `SHOW GRANTS` pokazuje odpowiednie uprawnienia.
+
+Hasło należy zmienić wyłącznie w lokalnej kopii wykonywanego skryptu. Nie zapisuj go w pliku `setup.sql` przeznaczonym do repozytorium.
+
+Skrypt wykorzystuje `CREATE DATABASE IF NOT EXISTS` i nie usuwa istniejących tabel ani danych. Jeżeli użytkownik `securenotes_migrator` już istnieje, polecenie `CREATE USER IF NOT EXISTS` nie zmieni jego dotychczasowego hasła — w takim przypadku należy użyć hasła już przypisanego do tego konta lub zmienić je osobno jako lokalny administrator.
+
+Skrypt przygotowuje bazy i uprawnienia. Strukturę tabel aplikacji tworzą migracje Entity Framework Core.
+
+### 7.3. Konfiguracja aplikacji i User Secrets
+
+Po przygotowaniu baz danych należy skonfigurować lokalne dane dostępowe do MariaDB oraz wymagane ustawienia JWT.
+
+**User Secrets należy skonfigurować osobno w dwóch projektach:**
+
+#### SecureNotes.API
+
+1. W Visual Studio kliknij prawym przyciskiem myszy projekt `SecureNotes.API`.
+2. Wybierz **Manage User Secrets (Zarządzaj kluczami tajnymi użytkownika)**.
+3. W otwartym pliku `secrets.json` ustaw hasło użytkownika MariaDB:
+
+```json
+{
+  "Api": {
+    "Password": "TUTAJ_WLASNE_LOKALNE_HASLO"
+  }
+}
+```
+
+Hasło musi być zgodne z hasłem ustawionym dla użytkownika `securenotes_migrator` podczas wykonywania `database/setup.sql`.
+
+W tym samym projekcie należy również skonfigurować wymagane sekrety JWT zgodnie z konfiguracją aplikacji. Nie należy usuwać istniejących poprawnych ustawień z pliku `secrets.json`.
+
+#### SecureNotes.Infrastructure.Tests
+
+1. Kliknij prawym przyciskiem myszy projekt `SecureNotes.Infrastructure.Tests`.
+2. Wybierz **Manage User Secrets (Zarządzaj kluczami tajnymi użytkownika)**.
+3. W jego osobnym pliku `secrets.json` ustaw:
+
+```json
+{
+  "Api": {
+    "Password": "TUTAJ_WLASNE_LOKALNE_HASLO"
+  }
+}
+```
+
+Testy infrastruktury korzystają z bazy `securenotes_test_db`, wskazanej w `appsettings.Test.json`. Hasło powinno być zgodne z danymi użytkownika `securenotes_migrator`.
+
+**Ważne:** oba projekty mają oddzielne konfiguracje User Secrets. Ustawienie hasła wyłącznie w `SecureNotes.API` nie oznacza, że będzie ono automatycznie dostępne dla `SecureNotes.Infrastructure.Tests` — i odwrotnie.
+
+W obu przykładach `TUTAJ_WLASNE_LOKALNE_HASLO` należy zastąpić hasłem wybranym podczas lokalnej konfiguracji MariaDB.
+
+Nie należy umieszczać rzeczywistych haseł ani klucza JWT w plikach przeznaczonych do repozytorium GitHub.
+
+### 7.4. Uruchomienie aplikacji
+
+1. W Solution Explorer kliknij prawym przyciskiem myszy projekt `SecureNotes.API`.
+2. Wybierz **Set as Startup Project**.
+3. Wybierz profil uruchamiania HTTPS.
+4. Uruchom aplikację za pomocą **F5** lub przycisku **Start** w Visual Studio.
+5. Po uruchomieniu otwórz w przeglądarce:
+
+`https://localhost:7028/`
+
+Podczas pierwszego lokalnego uruchomienia może być konieczne zaufanie certyfikatowi deweloperskiemu ASP.NET Core.
+
+Domyślnie otwierana jest strona główna aplikacji. Zachowanie to wynika z konfiguracji pliku `Properties/launchSettings.json`, w którym ustawiono:
+
+```json
+"launchUrl": ""
+```
+
+Port `7028` jest adresem wykorzystywanym w lokalnym środowisku projektowym. W innej konfiguracji numer portu może się różnić.
+
+Po poprawnym uruchomieniu można zarejestrować konto testowe, zalogować się i rozpocząć pracę z prywatnymi notatkami.
 
 ## 8. Swagger UI
 
@@ -226,7 +310,7 @@ W projekcie zaimplementowano testy jednostkowe i integracyjne obejmujące międz
 
 **Ostatni potwierdzony wynik: 85/85 zaliczonych testów automatycznych.**
 
-Do uruchomienia testów integracyjnych wymagane jest odpowiednio przygotowane środowisko bazodanowe, w tym testowa baza MariaDB `securenotes_test_db`.
+Testy integracyjne wymagają działającej MariaDB, bazy `securenotes_test_db` oraz poprawnie skonfigurowanego hasła w User Secrets projektu testowego. Bazę i uprawnienia można przygotować za pomocą `database/setup.sql`, zgodnie z sekcją 7.2.
 
 Testy można wykonać w Visual Studio za pomocą:
 
