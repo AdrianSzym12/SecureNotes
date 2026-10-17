@@ -1,6 +1,6 @@
 # Plan testów BEFORE/AFTER
 
-Procedury: `PLANNED`. Aktualizacja 17.10.2026, 05B: **T-XSS-02 i T-XSS-04 — PARTIAL, tylko wskazane obserwacje BEFORE użytkownika; pozostałe 13 scenariuszy NOT RUN**. Nie zaliczono pełnego porównania ani wykonania JavaScript. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Oczekiwania dla docelowego BEFORE dotyczą wersji po właściwych zmianach; obecnie wdrożono tylko CHG-XSS-01. Szczegóły i ograniczenia są w [results.md](results.md).
+Procedury: `PLANNED`. Aktualizacja 17.10.2026, 05D: **T-XSS-02 i T-XSS-04 — PARTIAL, tylko wskazane obserwacje BEFORE użytkownika; pozostałe 13 scenariuszy NOT RUN**. Wykonanie JavaScript z zapisanej notatki w BEFORE potwierdził użytkownik w 05D; pełnego porównania AFTER nie wykonano. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Oczekiwania dla docelowego BEFORE dotyczą wersji po właściwych zmianach; obecnie wdrożono CHG-XSS-01 i CHG-XSS-02. Szczegóły i ograniczenia są w [results.md](results.md).
 
 ## Zasady wspólne
 
@@ -40,7 +40,7 @@ Potwierdzić, że adres obrazu nie istnieje. Payload ustawia lokalny atrybut DOM
 
 ### T-XSS-02 — interpretacja i wykonanie (główny)
 
-**Stan 05B: PARTIAL.** Użytkownik potwierdził 17.10.2026 część interpretacji HTML w BEFORE przez zapis `<strong>DEMO-XSS-HTML</strong>` i pogrubiony wynik. Nie spełniono jeszcze warunku CHG-XSS-02 i nie potwierdzono wykonania JS ani AFTER, więc nie nadajemy PASS całemu testowi. Poniższa procedura i jej docelowe kryteria nie zostały zmienione po obserwacji.
+**Stan 05D: PARTIAL — BEFORE.** Po wcześniejszym potwierdzeniu HTML w 05B użytkownik 17.10.2026 potwierdził w 05D wykonanie JS z zapisanego img/onerror na `/notes.html` i alert `XSS DEMO - Właśnie zostałeś zaatakowany przez Albańskich Hakerów.`. To wynik BEFORE, nie pełny PASS: brak porównania AFTER i pełnego protokołu, w tym pełnego źródła faktycznego payloadu oraz archiwizacji. Nie dopisujemy efektu data-sn-xss. Poniższa docelowa procedura nie jest zapisem wykonanych kroków; wyniki i ograniczenia: [results.md](results.md).
 
 1. **Cel:** odróżnić interpretację HTML od wykonania JavaScript i porównać warianty.
 2. **Warunki:** notatka z payloadem zapisana; docelowe BEFORE ma CHG-XSS-01/02; AFTER pozostaje oryginalne. Przed próbą przeładować dokument, aby usunąć wcześniejszy znacznik DOM.

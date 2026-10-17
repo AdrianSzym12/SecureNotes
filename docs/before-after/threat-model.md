@@ -1,6 +1,6 @@
 # Model zagrożeń i jakościowa ocena ryzyka
 
-Podstawa: audyt kodu `21be7bb6aadd69c729250eb5d5248cabb114de04` (`VERIFIED`). Rekonstrukcja i doświadczenia: `PLANNED`, testy: `NOT RUN`. Ocena jest jakościowa; nie obliczamy CVSS bez uzgodnionej metodologii.
+Podstawa: audyt kodu `21be7bb6aadd69c729250eb5d5248cabb114de04` (`VERIFIED`). Stan 05D: CHG-XSS-01 wdrożono i częściowo zweryfikowano przez użytkownika; CHG-XSS-02 IMPLEMENTED / PARTIALLY VERIFIED — użytkownik potwierdził wykonanie JS w BEFORE (wyjątek inline handlers tylko dla dokładnej ścieżki `/notes.html`). Pozostałe zmiany są PLANNED. Historyczne T-XSS-02/04 mają PARTIAL — BEFORE; pozostałe 13 scenariuszy NOT RUN. Wyjątek dopuszcza wszystkie inline event handlers na tej stronie, co jest celowym ryzykiem laboratoryjnym; wykonanie JavaScript w BEFORE potwierdził użytkownik 17.10.2026. Rzeczywiste nagłówki innych ścieżek i zachowanie AFTER wymagają osobnej weryfikacji. Ocena jest jakościowa; nie obliczamy CVSS bez uzgodnionej metodologii.
 
 ## Zasoby, aktorzy i zakres
 

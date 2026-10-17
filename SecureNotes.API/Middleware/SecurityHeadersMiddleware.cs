@@ -28,7 +28,9 @@ namespace SecureNotes.API.Middleware
                 headers["Content-Security-Policy"] =
                     "default-src 'none'; " +
                     "script-src 'self'; " +
-                    "script-src-attr 'none'; " +
+                    (string.Equals(context.Request.Path.Value, "/notes.html", StringComparison.Ordinal)
+                        ? "script-src-attr 'unsafe-inline'; "
+                        : "script-src-attr 'none'; ") +
                     "style-src 'self'; " +
                     "style-src-attr 'none'; " +
                     "img-src 'self'; " +

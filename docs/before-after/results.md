@@ -1,6 +1,6 @@
 # Wyniki i rejestr dowodów
 
-Stan na 17.10.2026, 05B. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Użytkownik wykonał dwie próby na BEFORE z CHG-XSS-01 i oryginalną CSP. Pokrywają one części T-XSS-02 i T-XSS-04, oznaczone PARTIAL; nie zaliczamy całych scenariuszy ani porównania AFTER. Pozostałe 13 scenariuszy pozostaje NOT RUN. Codex nie uruchamiał aplikacji ani prób. Pełne wykonanie JavaScript w Stored XSS nie zostało potwierdzone.
+Stan na 17.10.2026, 05D. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Użytkownik potwierdził wykonanie Stored XSS w BEFORE po CHG-XSS-02. T-XSS-02 i T-XSS-04 mają PARTIAL — BEFORE; pozostałe 13 scenariuszy NOT RUN. Nie wykonano pełnego porównania AFTER. Codex nie uruchamiał aplikacji ani prób.
 
 `NOT RUN` jest statusem wykonania, a nie wynikiem bezpieczeństwa. Po próbach zgodność oceniać jako zgodny/niezgodny/niejednoznaczny; skuteczność jako skuteczna/nieskuteczna/nieoceniona w danym zakresie. Wykrycie podatności w BEFORE może być zgodne z hipotezą, ale oznacza nieskuteczną kontrolę. Osobne protokoły dla BEFORE i AFTER muszą wskazywać rzeczywiście badany SHA.
 
@@ -9,7 +9,7 @@ Stan na 17.10.2026, 05B. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 | Test | Status | Oczekiwane BEFORE | Oczekiwane AFTER | Zaobserwowane BEFORE / AFTER | Zgodność z oczekiwaniem | Skuteczność zabezpieczenia | Dowód | Uwagi i ograniczenia |
 |---|---|---|---|---|---|---|---|---|
 | T-XSS-01 | NOT RUN | Zapis i odczyt treści | Zapis i odczyt treści | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono; to kontrola danych | Brak | Porównywać odkodowany JSON |
-| T-XSS-02 | PARTIAL — BEFORE, część HTML | Docelowo HTML i wykonanie handlera po CHG-XSS-01/02 | Tekst, brak wykonania | BEFORE: strong z zapisanej treści dało pogrubiony DEMO-XSS-HTML; AFTER: nie badano | Zgodna tylko część interpretacji HTML; wykonanie i pełne porównanie nieocenione | Bezpieczne renderowanie tekstu w BEFORE naruszone; wykonania JS nie potwierdzono | Screenshoty zgłoszone przez użytkownika; archiwizacja niepotwierdzona, bez ID | 17.10.2026, obserwacja użytkownika; CHG-XSS-02 nie wdrożono |
+| T-XSS-02 | PARTIAL — BEFORE, HTML i wykonanie JS | HTML i wykonanie handlera po CHG-XSS-01/02 | Tekst, brak wykonania | BEFORE: strong w 05B; w 05D alert z zapisanego img/onerror, dokładna treść poniżej; AFTER: nie badano | Wykonanie JS w BEFORE zgodne; pełne porównanie nieocenione | W BEFORE potwierdzono wykonanie Stored XSS; AFTER nieocenione | Screenshoty w rozmowie według użytkownika; archiwizacja niepotwierdzona, bez ID | 17.10.2026, obserwacja użytkownika; niepełny protokół i pełny payload do uzupełnienia |
 | T-XSS-03 | NOT RUN | Ponowne wykonanie po GET | Ponownie tekst | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono | Brak | Dowód trwałości, nie ręczny DOM |
 | T-XSS-04 | PARTIAL — BEFORE | Etap pośredni: HTML, handler blokowany | Tekst, brak wykonania | BEFORE: img powstało, obraz 404, brak alertu, Console wskazała blokadę script-src-attr none; AFTER: nie badano | Część BEFORE zgodna z oczekiwaniem; pełne porównanie nieocenione | CSP skuteczna dla konkretnego demonstracyjnego inline handlera w tej próbie | Screenshoty zgłoszone przez użytkownika; archiwizacja niepotwierdzona, bez ID | 17.10.2026; inny nieszkodliwy payload niż bazowy przykład; zachować commit pośredni |
 | T-CSRF-A01 | NOT RUN | 201 i zapis | 201 i zapis | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono; kontrola pozytywna | Brak | Token właściwy dla sesji |
@@ -26,7 +26,7 @@ Stan na 17.10.2026, 05B. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 
 Kroki, dane i sprzątanie: [test-plan.md](test-plan.md). Zmiany: [change-register.md](change-register.md).
 
-## Obserwacje użytkownika — 17 października 2026
+## Historyczne obserwacje 05B — 17 października 2026 (przed CHG-XSS-02)
 
 Próba A: treść zapisanej notatki `<strong>DEMO-XSS-HTML</strong>` została wyrenderowana jako pogrubiony DEMO-XSS-HTML. Potwierdza to interpretację HTML w treści po CHG-XSS-01. Przypisanie do T-XSS-02 dotyczy tylko renderowania, nie jego warunku docelowego CHG-XSS-02, wykonania kodu i porównania AFTER.
 
@@ -41,6 +41,18 @@ Użytkownik zobaczył img; brakujący obraz dał HTTP 404, alert nie wystąpił,
 Nie potwierdzono osobnego GET z porównaniem odkodowanego content/ID (T-XSS-01), nowego pobrania po przeładowaniu (T-XSS-03), testu po CHG-XSS-02 ani powtórzenia w AFTER. Nie przypisujemy tym zakresom PASS. Istniejące procedury pozostają do dokończenia, a wariant payloadu B zapisujemy jawnie bez zastępowania danych planu po fakcie.
 
 Źródło: relacja użytkownika i zgłoszone screenshoty w rozmowie ChatGPT, nie wykonanie/niezależna inspekcja Codexa. Fizyczna archiwizacja obrazów w repo nie jest potwierdzona; nie przypisano rzeczywistych nazw plików, ścieżek ani ID. Nie utożsamiamy potwierdzenia interpretacji HTML z wykonaniem Stored XSS. Stan kodu utrwala commit etapu 05B `demo(xss): introduce HTML rendering and document CSP blocking` na rodzicu `714973314721918b3b59cb0b81c8fe270822fede`; jego SHA jest identyfikatorem utrwalonego kodu, nie retroaktywnym SHA wcześniejszego uruchomienia.
+
+## Wynik użytkownika 05D — 17.10.2026
+
+Użytkownik potwierdził rzeczywiste wykonanie JavaScript z zapisanej treści notatki (Stored XSS) na `https://localhost:7028/notes.html` po CHG-XSS-02. Payload używał elementu img i onerror; wyświetlony alert miał dokładnie treść:
+
+> XSS DEMO - Właśnie zostałeś zaatakowany przez Albańskich Hakerów.
+
+Tekst jest humorystycznym elementem bezpiecznego eksperymentu. Nie znamy pełnego źródła payloadu tej próby; nie utożsamiamy go z wcześniejszym payloadem o krótszym tekście alertu i nie dopisujemy brakujących atrybutów ani znacznika data-sn-xss. Obserwację wykonał użytkownik 17.10.2026, nie Codex. Screenshoty są dostępne według użytkownika w rozmowie, lecz fizyczna archiwizacja nie jest potwierdzona; nie przypisano im nazw, ścieżek ani ID dowodów.
+
+CHG-XSS-02: **IMPLEMENTED / PARTIALLY VERIFIED — wykonanie JS w BEFORE potwierdzone przez użytkownika**. T-XSS-02 pozostaje **PARTIAL — BEFORE**, teraz z potwierdzonym wykonaniem JS. Brak pełnego porównania AFTER i pozostałych danych protokołu nie pozwala nadać PASS całemu scenariuszowi. T-XSS-04 pozostaje **PARTIAL — BEFORE** z historycznym wynikiem blokady przy oryginalnej CSP w checkpointcie `9c825ad8d87a63f1134bbfc1e0f64a9b57ea6c11`. Pozostałe 13 scenariuszy nadal **NOT RUN**, w tym T-XSS-01/03 i T-REG-04: nie zgłoszono odrębnego porównania GET/content/ID, próby trwałości po ponownym pobraniu ani pełnego pomiaru nagłówków.
+
+Rzeczywiste nagłówki CSP pozostałych ścieżek, a także zachowanie AFTER wymagają osobnej weryfikacji. Ograniczenie wyjątku do dokładnego `/notes.html` oraz zachowanie pozostałych dyrektyw potwierdza analiza kodu, nie pomiar odpowiedzi HTTP. Nie wykazano dostarczenia payloadu innemu użytkownikowi ani przejęcia konta. Docelowy BEFORE zachowuje podatny renderer i wyjątek CSP; CHG-CSRF-01/02 nadal PLANNED.
 
 ## Indeks dowodów i stan archiwizacji
 
