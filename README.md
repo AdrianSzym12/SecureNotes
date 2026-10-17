@@ -60,8 +60,11 @@ SecureNotes/
 ├── SecureNotes.Domain.Tests/
 │   └── Testy logiki domenowej
 │
-└── SecureNotes.Infrastructure.Tests/
-    └── Testy infrastruktury i integracji
+├── SecureNotes.Infrastructure.Tests/
+│   └── Testy infrastruktury i integracji
+│
+└── database/
+    └── setup.sql
 ```
 
 Takie podejście pozwala ograniczyć zależność najważniejszej logiki aplikacji od bazy danych, interfejsu użytkownika i frameworków.
@@ -114,9 +117,12 @@ W projekcie zastosowano własny `SecurityHeadersMiddleware`, który ustawia mię
 - `X-Content-Type-Options: nosniff`;
 - `X-Frame-Options: DENY`;
 - `Referrer-Policy: no-referrer`;
-- `Permissions-Policy`.
+- `Permissions-Policy`;
+- `Cache-Control: no-store` dla odpowiedzi API.
 
-Mechanizm pozostaje aktywny w aplikacji.
+Dodatkowo skonfigurowano HTTP Strict Transport Security (HSTS), aktywne poza środowiskiem Development, z polityką `max-age=2592000` (30 dni).
+
+Mechanizmy bezpieczeństwa pozostają aktywne w aplikacji, a restrykcyjna polityka CSP nie została osłabiona.
 
 ## 5. Endpointy API
 
@@ -152,34 +158,130 @@ Do lokalnego uruchomienia projektu potrzebne są:
 - .NET 8 SDK;
 - MariaDB;
 - XAMPP lub inna lokalna instalacja MariaDB;
+- dostęp do phpMyAdmin lub innego klienta MariaDB;
 - przeglądarka internetowa obsługująca HTTPS i JavaScript.
 
 ## 7. Uruchamianie aplikacji
 
-1. Sklonuj repozytorium i otwórz rozwiązanie SecureNotes w Visual Studio 2022.
-2. Uruchom MariaDB.
-3. Skonfiguruj połączenie z bazą danych oraz wymagane ustawienia JWT.
-4. Dane wrażliwe, w szczególności hasła do bazy i klucz JWT, przechowuj poza repozytorium, np. w Visual Studio User Secrets.
-5. Ustaw `SecureNotes.API` jako projekt startowy.
-6. Uruchom aplikację przy użyciu HTTPS, naciskając F5.
+### 7.1. Klonowanie repozytorium
 
-Domyślnie otwierana jest strona główna:
+1. Otwórz repozytorium SecureNotes na GitHubie.
+2. Kliknij zielony przycisk **Code**.
+3. W zakładce **HTTPS** skopiuj adres repozytorium.
+4. Uruchom **Visual Studio 2022**.
+5. Na ekranie startowym wybierz **Clone a repository (Klonuj repozytorium)**.
+6. W polu **Repository location** wklej skopiowany adres GitHub.
+7. W polu **Path** wybierz folder, w którym projekt ma zostać zapisany.
+8. Kliknij **Clone (Klonuj)** i poczekaj na pobranie projektu.
+9. Otwórz rozwiązanie SecureNotes w Visual Studio.
+10. W menu **Git → Manage Branches** znajdź gałąź `develop`, kliknij ją prawym przyciskiem myszy i wybierz **Checkout**. Jeżeli gałąź jest widoczna tylko w sekcji zdalnej, wybierz `origin/develop` i utwórz z niej lokalną gałąź.
+
+### 7.2. Przygotowanie baz danych
+
+Przed pierwszym uruchomieniem aplikacji należy przygotować lokalne bazy MariaDB.
+
+W repozytorium znajduje się skrypt:
+
+`database/setup.sql`
+
+Skrypt tworzy dwie bazy danych:
+
+| Baza danych | Przeznaczenie |
+|---|---|
+| `securenotes_db` | Główna baza aplikacji |
+| `securenotes_test_db` | Oddzielna baza testów automatycznych |
+
+Tworzy również lokalnego użytkownika MariaDB `securenotes_migrator` i nadaje mu uprawnienia ograniczone do obu wskazanych baz.
+
+**Instrukcja wykonania:**
+
+1. Uruchom MariaDB, np. za pomocą XAMPP.
+2. Otwórz phpMyAdmin i zaloguj się jako administrator MariaDB.
+3. Otwórz plik `database/setup.sql`.
+4. Skopiuj jego zawartość do zakładki **SQL** w phpMyAdmin.
+5. Przed wykonaniem zastąp `UZUPELNIJ_WLASNE_HASLO` własnym hasłem użytkownika `securenotes_migrator`.
+6. Kliknij **Wykonaj / Go**.
+7. Sprawdź, czy obie bazy zostały utworzone, a zapytanie `SHOW GRANTS` pokazuje odpowiednie uprawnienia.
+
+Hasło należy zmienić wyłącznie w lokalnej kopii wykonywanego skryptu. Nie zapisuj go w pliku `setup.sql` przeznaczonym do repozytorium.
+
+Skrypt wykorzystuje `CREATE DATABASE IF NOT EXISTS` i nie usuwa istniejących tabel ani danych. Jeżeli użytkownik `securenotes_migrator` już istnieje, polecenie `CREATE USER IF NOT EXISTS` nie zmieni jego dotychczasowego hasła — w takim przypadku należy użyć hasła już przypisanego do tego konta lub zmienić je osobno jako lokalny administrator.
+
+Skrypt przygotowuje bazy i uprawnienia. Strukturę tabel aplikacji tworzą migracje Entity Framework Core.
+
+### 7.3. Konfiguracja aplikacji i User Secrets
+
+Po przygotowaniu baz danych należy skonfigurować lokalne dane dostępowe do MariaDB oraz wymagane ustawienia JWT.
+
+**User Secrets należy skonfigurować osobno w dwóch projektach:**
+
+#### SecureNotes.API
+
+1. W Visual Studio kliknij prawym przyciskiem myszy projekt `SecureNotes.API`.
+2. Wybierz **Manage User Secrets (Zarządzaj kluczami tajnymi użytkownika)**.
+3. W otwartym pliku `secrets.json` ustaw hasło użytkownika MariaDB:
+
+```json
+{
+  "Api": {
+    "Password": "TUTAJ_WLASNE_LOKALNE_HASLO"
+  }
+}
+```
+
+Hasło musi być zgodne z hasłem ustawionym dla użytkownika `securenotes_migrator` podczas wykonywania `database/setup.sql`.
+
+W tym samym projekcie należy również skonfigurować wymagane sekrety JWT zgodnie z konfiguracją aplikacji. Nie należy usuwać istniejących poprawnych ustawień z pliku `secrets.json`.
+
+#### SecureNotes.Infrastructure.Tests
+
+1. Kliknij prawym przyciskiem myszy projekt `SecureNotes.Infrastructure.Tests`.
+2. Wybierz **Manage User Secrets (Zarządzaj kluczami tajnymi użytkownika)**.
+3. W jego osobnym pliku `secrets.json` ustaw:
+
+```json
+{
+  "Api": {
+    "Password": "TUTAJ_WLASNE_LOKALNE_HASLO"
+  }
+}
+```
+
+Testy infrastruktury korzystają z bazy `securenotes_test_db`, wskazanej w `appsettings.Test.json`. Hasło powinno być zgodne z danymi użytkownika `securenotes_migrator`.
+
+**Ważne:** oba projekty mają oddzielne konfiguracje User Secrets. Ustawienie hasła wyłącznie w `SecureNotes.API` nie oznacza, że będzie ono automatycznie dostępne dla `SecureNotes.Infrastructure.Tests` — i odwrotnie.
+
+W obu przykładach `TUTAJ_WLASNE_LOKALNE_HASLO` należy zastąpić hasłem wybranym podczas lokalnej konfiguracji MariaDB.
+
+Nie należy umieszczać rzeczywistych haseł ani klucza JWT w plikach przeznaczonych do repozytorium GitHub.
+
+### 7.4. Uruchomienie aplikacji
+
+1. W Solution Explorer kliknij prawym przyciskiem myszy projekt `SecureNotes.API`.
+2. Wybierz **Set as Startup Project**.
+3. Wybierz profil uruchamiania HTTPS.
+4. Uruchom aplikację za pomocą **F5** lub przycisku **Start** w Visual Studio.
+5. Po uruchomieniu otwórz w przeglądarce:
 
 `https://localhost:7028/`
 
-Zachowanie to wynika z konfiguracji pliku `Properties/launchSettings.json`, w którym ustawiono:
+Podczas pierwszego lokalnego uruchomienia może być konieczne zaufanie certyfikatowi deweloperskiemu ASP.NET Core.
+
+Domyślnie otwierana jest strona główna aplikacji. Zachowanie to wynika z konfiguracji pliku `Properties/launchSettings.json`, w którym ustawiono:
 
 ```json
 "launchUrl": ""
 ```
 
-Port `7028` jest adresem wykorzystywanym w lokalnym środowisku projektowym. W innej konfiguracji może mieć inną wartość.
+Port `7028` jest adresem wykorzystywanym w lokalnym środowisku projektowym. W innej konfiguracji numer portu może się różnić.
+
+Po poprawnym uruchomieniu można zarejestrować konto testowe, zalogować się i rozpocząć pracę z prywatnymi notatkami.
 
 ## 8. Swagger UI
 
 Swagger/OpenAPI jest skonfigurowany dla środowiska `Development`.
 
-Adres:
+Adres interfejsu:
 
 `https://localhost:7028/swagger/index.html`
 
@@ -187,9 +289,11 @@ Adres:
 
 Podczas diagnostyki stwierdzono, że problem ustępuje po tymczasowym wyłączeniu `SecurityHeadersMiddleware`. Nie jest to jednak rozwiązanie docelowe, ponieważ middleware odpowiada za ustawianie nagłówków bezpieczeństwa również dla pozostałych stron aplikacji.
 
-W wersji przechowywanej w repozytorium `SecurityHeadersMiddleware` pozostaje aktywny.
+Podjęto decyzję o zachowaniu restrykcyjnej polityki CSP bez dodawania wyjątków osłabiających zabezpieczenia aplikacji.
 
-Planowane rozwiązanie zakłada dostosowanie CSP wyłącznie do potrzeb Swagger UI w środowisku deweloperskim, bez osłabiania zabezpieczeń właściwego interfejsu SecureNotes.
+Dokumentacja OpenAPI w formacie JSON pozostaje dostępna pod adresem:
+
+`https://localhost:7028/swagger/v1/swagger.json`
 
 ## 9. Testowanie
 
@@ -201,11 +305,12 @@ W projekcie zaimplementowano testy jednostkowe i integracyjne obejmujące międz
 - tworzenie i odczyt notatek;
 - aktualizację i usuwanie notatek;
 - sprawdzanie właściciela notatki;
-- poprawność działania repozytoriów.
+- poprawność działania repozytoriów;
+- weryfikację konfiguracji HSTS.
 
-**Ostatni potwierdzony wynik: 82/82 zaliczonych testów automatycznych.**
+**Ostatni potwierdzony wynik: 85/85 zaliczonych testów automatycznych.**
 
-Do uruchomienia testów integracyjnych wymagane jest odpowiednio przygotowane środowisko bazodanowe, w tym testowa baza MariaDB `securenotes_test_db`.
+Testy integracyjne wymagają działającej MariaDB, bazy `securenotes_test_db` oraz poprawnie skonfigurowanego hasła w User Secrets projektu testowego. Bazę i uprawnienia można przygotować za pomocą `database/setup.sql`, zgodnie z sekcją 7.2.
 
 Testy można wykonać w Visual Studio za pomocą:
 
@@ -213,7 +318,7 @@ Testy można wykonać w Visual Studio za pomocą:
 
 W ramach ręcznej weryfikacji sprawdzano również kontrolę dostępu, mechanizmy CSRF oraz zachowanie aplikacji w przypadku prób dostępu do notatek innego użytkownika.
 
-Końcowy audyt z wykorzystaniem OWASP ZAP oraz przygotowanie zbiorczego raportu bezpieczeństwa stanowią osobny etap projektu.
+Szczegółowa dokumentacja przeprowadzonych testów bezpieczeństwa, działań naprawczych i ich wyników znajduje się w katalogu [`docs/security-audit/`](docs/security-audit/).
 
 ## 10. Organizacja pracy z Git
 
@@ -226,7 +331,7 @@ Główne gałęzie:
 - `feature/*` – implementacja nowych funkcjonalności;
 - `fix/*` – poprawki błędów;
 - `chore/*` – porządkowanie projektu;
-- `docs/*` – zmiany dokumentacji.  
+- `docs/*` – zmiany dokumentacji.
 
 Zmiany przygotowywane są na osobnych branchach, a następnie scalane z `develop` za pomocą Pull Request.
 

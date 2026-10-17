@@ -17,6 +17,13 @@ namespace SecureNotes.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(30);
+                options.IncludeSubDomains = false;
+                options.Preload = false;
+            });
+
             builder.Services.AddPersistence(builder.Configuration);
             builder.Services.AddJwtAuthentication(builder.Configuration);
 
@@ -31,7 +38,6 @@ namespace SecureNotes.API
                 options.Cookie.SameSite = SameSiteMode.Strict;
                 options.Cookie.Path = "/";
             });
-
 
             var app = builder.Build();
             app.UseMiddleware<ErrorHandlingMiddleware>();
@@ -57,6 +63,11 @@ namespace SecureNotes.API
                 app.UseSwaggerUI();
             }
 
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHsts();
+            }
 
             app.UseHttpsRedirection();
 
