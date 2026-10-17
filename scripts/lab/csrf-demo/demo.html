@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SecureNotes – demonstracja CSRF</title>
+  </head>
+  <body>
+    <h1>SecureNotes – demonstracja CSRF</h1>
+    <p>Kontrolowany eksperyment laboratoryjny na fikcyjnych danych.</p>
+    <p>
+      Aplikacja BEFORE musi działać pod https://localhost:7028. Zaloguj się
+      wcześniej na własne konto demonstracyjne w tej samej przeglądarce i
+      profilu.
+    </p>
+    <p>
+      Formularz wyśle notatkę dopiero po świadomym naciśnięciu przycisku. Po
+      wysłaniu sprawdź rezultat w SecureNotes; ta strona nie potwierdza sukcesu
+      operacji.
+    </p>
+    <form
+      method="post"
+      action="https://localhost:7028/api/notes"
+      enctype="application/x-www-form-urlencoded"
+      target="csrf-result-frame"
+    >
+      <p>
+        <label for="title">Tytuł notatki</label><br />
+        <input
+          id="title"
+          name="title"
+          type="text"
+          maxlength="150"
+          value="SN-T-CSRF-B01"
+          required
+        />
+      </p>
+      <p>
+        <label for="content">Treść notatki</label><br />
+        <textarea
+          id="content"
+          name="content"
+          rows="5"
+          cols="60"
+          maxlength="10000"
+        >
+Fikcyjna notatka z lokalnej demonstracji CSRF.</textarea
+        >
+      </p>
+      <button type="submit">Wyślij formularz CSRF</button>
+    </form>
+    <iframe
+      name="csrf-result-frame"
+      title="Odpowiedź formularza CSRF"
+      hidden
+    ></iframe>
+  </body>
+</html>

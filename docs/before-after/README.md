@@ -1,6 +1,6 @@
 # SecureNotes — porównanie BEFORE/AFTER
 
-Dokumentacja projektu z przedmiotu **Bezpieczeństwo aplikacji internetowych**, stan na 16.10.2026. Temat karty projektu: P7 — Utwardzanie przeglądarki 2026 (Browser Hardening).
+Dokumentacja projektu z przedmiotu **Bezpieczeństwo aplikacji internetowych**, stan na 17.10.2026 (06F). Temat karty projektu: P7 — Utwardzanie przeglądarki 2026 (Browser Hardening).
 
 ## Cel i zakres
 
@@ -11,7 +11,7 @@ Celem jest zbadanie jednej ścieżki Stored XSS w treści prywatnej notatki oraz
 | Wersja | Katalog | Branch | Rola |
 |---|---|---|---|
 | AFTER | `H:\Roboczy\BAI\SecureNotes-dev` | `develop` | Referencja tylko do odczytu |
-| BEFORE | `H:\Roboczy\BAI\SecureNotes-BEFORE` | `demo/security-before` | Przyszła wersja demonstracyjna |
+| BEFORE | `H:\Roboczy\BAI\SecureNotes-BEFORE` | `demo/security-before` | Wdrożona wersja demonstracyjna, częściowe wyniki użytkownika |
 
 Bazowy commit obu wersji: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 
@@ -22,7 +22,7 @@ Bazowy commit obu wersji: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 - `NOT RUN` — test niewykonany. Oczekiwany wynik jest hipotezą, nie obserwacją.
 - `DO WERYFIKACJI` — informacja wymagająca dodatkowego źródła lub decyzji.
 
-**Aktualnie VERIFIED:** podany SHA pozostaje bazą kodu i HEAD referencji develop; branch BEFORE zawiera ponadto commity dokumentacji i laboratorium. Przy bazowym SHA kod obu wariantów był identyczny. Kod zabezpieczeń nadal nie został zmieniony. Cztery zmiany rekonstrukcyjne mają status `PLANNED`; wszystkie 15 scenariuszy bezpieczeństwa ma status `NOT RUN`. Codex w 04D nie uruchamiał aplikacji, SQL, migracji ani testów.
+**Stan 06F, 17.10.2026:** bazowy SHA pozostaje HEAD referencji develop. Wszystkie cztery zmiany rekonstrukcyjne są IMPLEMENTED / PARTIALLY VERIFIED w opisanym zakresie BEFORE na podstawie prób użytkownika. Matryca zawiera 6 PARTIAL — BEFORE i 9 NOT RUN; AFTER nie badano, a końcowe porównania pozostają na próbę generalną. Szczegóły: [wyniki](results.md), [rejestr zmian](change-register.md), [lokalna demonstracja CSRF](../../scripts/lab/csrf-demo/README.md). Codex nie wykonywał prób aplikacji, HTTP, SQL ani migracji. Poniższe wpisy 03B/04A opisują historię przygotowania.
 
 **Potwierdzenie użytkownika — 03B:** referencyjne AFTER uruchomione z `develop` w Visual Studio 2022 działa z MariaDB/XAMPP i zapisuje notatki. Użytkownik zgłosił wynik testów automatycznych **85/85 (0 nieudanych, 0 pominiętych)** oraz obecność istniejących baz i tabel w phpMyAdmin. To nie są wyniki demonstracyjnych scenariuszy ani testy wykonane przez Codexa. Screenshotom nie przypisano jeszcze zarchiwizowanych plików lub ID. Szczegóły i miejsca do uzupełnienia są w [opisie środowiska](environment.md).
 

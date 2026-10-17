@@ -1,6 +1,39 @@
 # Środowisko laboratoryjne
 
-Stan dokumentu: `VERIFIED` dla deklaracji kodu i utworzenia pustej bazy BEFORE w 04A; działanie AFTER potwierdzone przez użytkownika w 03B; konfiguracja i uruchomienie BEFORE potwierdzone przez użytkownika w 04D, z wynikami poniżej. Wszystkie 15 testów demonstracyjnych: `NOT RUN`; cztery zmiany implementacyjne: `PLANNED`. Bazowy commit: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
+Stan dokumentu 06F: deklaracje kodu i przygotowanie bazy zweryfikowano odczytowo lub podczas wcześniejszego 04A; działanie AFTER (03B), BEFORE (04D) oraz demonstracje XSS/CSRF potwierdził użytkownik w opisanym zakresie. Cztery zmiany są wdrożone i częściowo zweryfikowane; wyniki serii to 6 PARTIAL — BEFORE / 9 NOT RUN. AFTER nie badano w tej serii. Bazowy commit: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Poniższe datowane sekcje zachowują historię przygotowania.
+
+## Zakończenie implementacji CSRF — 06F, 17.10.2026
+
+CHG-CSRF-02: **IMPLEMENTED / PARTIALLY VERIFIED — BEFORE, formularz cross-origin / same-site**. Obie poniższe próby wykonał i potwierdził użytkownik 17.10.2026, nie Codex.
+
+- Pierwotny formularz z https://localhost:7443 wysłał POST do https://localhost:7028/api/notes: utworzono `SN-T-CSRF-B01`, API zwróciło JSON nowego rekordu i notatka była widoczna w UI. Główna karta przeszła do JSON.
+- Po dodaniu target=csrf-result-frame, ukrytego iframe i frame-src https://localhost:7028 wyłącznie do CSP serwera demonstracyjnego użytkownik potwierdził pozostanie na stronie demonstracyjnej, utworzenie `SN-T-CSRF-B02`, widoczność w UI i nowy rekord w MariaDB.
+
+Nie udokumentowano dokładnych kodów HTTP ani rzeczywistych nagłówków tych prób; nie dopisujemy ich. Nie zgłoszono konkretnego komunikatu blokady iframe ani niezależnego pomiaru cookies. Strona demonstracyjna nie odczytuje odpowiedzi API; zapis potwierdzono niezależnie. Frame-ancestors none i X-Frame-Options DENY SecureNotes pozostają bez zmian: ewentualna blokada wyświetlenia odpowiedzi w ramce nie oznacza automatycznie odrzucenia POST.
+
+Oba przebiegi należą do **T-CSRF-B01 — PARTIAL — BEFORE**. Nazwa notatki SN-T-CSRF-B02 jest znacznikiem danych, a nie wykonaniem scenariusza T-CSRF-B02 (formularz bez uwierzytelnienia). T-CSRF-B02 i T-CSRF-B03 nadal NOT RUN. W całej serii jest **6 PARTIAL — BEFORE / 9 NOT RUN**; wcześniejsze obserwacje XSS i JSON pozostają zachowane, bez pełnego PASS dla porównań z AFTER.
+
+Cross-origin localhost:7443 → localhost:7028: potwierdzony przez użytkownika. Same-site: oba originy to HTTPS localhost, różnią się portem. Obejście SameSite=Strict: nieudowodnione. Atak z niezależnej domeny oraz porównanie AFTER: nieprzetestowane. Nie zmieniano JWT, cookies, SameSite, CORS ani CSP SecureNotes w ramach demonstracji. Pozostałe chronione operacje zachowują Antiforgery. Obie zmiany XSS i CHG-CSRF-01 pozostają wdrożone i częściowo zweryfikowane przez użytkownika w dotychczasowym zakresie.
+
+Screenshoty są zgłoszone w rozmowie; fizyczna archiwizacja niepotwierdzona. Nie nadano rzeczywistych nazw, ścieżek ani ID dowodów. Przed publikacją ukryć cookies/tokeny, identyfikatory użytkowników i niepotrzebne dane phpMyAdmin. Uzupełnić rzeczywiste metadane prób i pełny payload XSS; nie przypisywać przyszłego SHA commita wstecz wcześniejszym uruchomieniom. Porównania z AFTER pozostają planem próby generalnej na końcu projektu, nie zadaniem 06F.
+
+Odtworzenie po osobnym zleceniu: uruchomić BEFORE przez start-before na securenotes_before_lab, zalogować własne fikcyjne konto na HTTPS localhost:7028, w drugiej sesji uruchomić osobny serwer demonstracyjny na HTTPS localhost:7443. Otworzyć go jako główną kartę w tym samym profilu; nadać unikalny fikcyjny tytuł i świadomie wysłać natywny formularz URL-encoded do ukrytego iframe, bez JS/fetch/tokenu. Sprawdzić nowy zapis w UI/GET BEFORE i osobno w bazie przez uprawnionego użytkownika. Nie odczytywać odpowiedzi z originu demonstracyjnego, nie uznawać samego braku błędu za sukces. Zachować zanonimizowane dowody i usunąć wyłącznie własną notatkę przez prawidłowo uwierzytelnione UI z tokenem. Serwer loopback nie czyta ani nie loguje cookies, które mogą przyjść na 7443; nie uruchamiać proxy ani przechwytywania sesji.
+
+Starsze sekcje 06D/06C/06B poniżej opisują ówczesny stan przygotowania i wyniki, a nie aktualne statusy 06F. Codex w 06F nie uruchamiał aplikacji, serwerów, HTTP, SQL, migracji ani testów integracyjnych.
+
+## Przygotowanie demonstracji 06D — NOT RUN
+
+W `scripts/lab/csrf-demo/` przygotowano niezależny projekt ASP.NET Core 8, Program.cs, demo.html i README.md. Bez PackageReference, odwołań do SecureNotes, UserSecretsId, bazy ani zapisu danych. Projekt nie został dodany do rozwiązania SecureNotes. Serwera, strony i próby T-CSRF-B01 nie uruchomiono; statusy pozostają **5 PARTIAL — BEFORE / 10 NOT RUN**.
+
+Kestrel używa wyłącznie ListenLocalhost(7443) i UseHttps z istniejącym certyfikatem developerskim; dodatkowo sprawdza HTTPS oraz Host localhost:7443. Odziedziczone źródła konfiguracji endpointów usunięto; brak adresów sieciowych i HTTP. Dostawcy logowania są wyłączeni, nie ma odczytu cookies, autoryzacji ani middleware logującego żądania. Dostępna jest tylko strona GET /, bez katalogu plików statycznych. Nawigacyjny formularz wysyła title/content jako application/x-www-form-urlencoded bez tokenu, wyłącznie po świadomym kliknięciu, bez JavaScript i fetch, bezpośrednio do https://localhost:7028/api/notes.
+
+Kontrola odczytowa `dotnet dev-certs https --check --trust` wykazała istniejący zaufany certyfikat developerski CN=localhost, ważny 14.10.2026–14.10.2027. Nie zmieniono magazynu certyfikatów. Pełna kompilacja projektu lokalnym SDK 8.0.402: PASS, 0 błędów i 0 ostrzeżeń; źródło pakietów było pustym lokalnym katalogiem, artefakty poza repozytorium. Nie jest to potwierdzenie uruchomienia HTTPS ani zaufania konkretnej przeglądarki. Zajętość portu należy sprawdzić przed przyszłym startem.
+
+Przyszła próba: uruchomić BEFORE z bazą laboratoryjną i zalogować własne fikcyjne konto na localhost:7028; osobno uruchomić demonstrację i otworzyć https://localhost:7443/. Po kliknięciu zarejestrować Origin, typ treści, rzeczywisty status, ID i zapis przez nowy odczyt UI/GET oraz osobne potwierdzenie użytkownika w bazie. Nie uruchamiać teraz. Dla 401 ustalić problem uwierzytelnienia; 400/403/415 wymaga rozpoznania formatu/routingu/filtrów, bez automatycznego wniosku o Antiforgery. Screenshoty anonimizować, w tym identyfikatory użytkowników w phpMyAdmin; nazwy i ID dowodów dopiero po archiwizacji.
+
+Zakres: **cross-origin / same-site**, nie obejście SameSite=Strict ani potwierdzenie ataku z niezależnej domeny. Cookies localhost nie izolują portów: serwer 7443 może je otrzymać, lecz ich nie odczytuje, nie zapisuje i nie przekazuje. Używać tylko lokalnego, kontrolowanego procesu, bez proxy i przechwytywania sesji. Kontrola cross-site z 127.0.0.1 nie jest obsługiwana przez ten serwer — wymaga osobnego planu. Brak zmian JWT, cookies, CORS i CSP SecureNotes; istniejący roboczy diff CHG-CSRF-02 pozostaje nienaruszony. Brak git add/commit/push.
+
+[Instrukcja serwera i formularza](../../scripts/lab/csrf-demo/README.md).
 
 ## Potwierdzenie środowiska referencyjnego AFTER — 03B
 

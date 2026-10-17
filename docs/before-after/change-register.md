@@ -1,5 +1,41 @@
 # Rejestr zmian BEFORE względem AFTER
 
+## Zakończenie implementacji CSRF — 06F, 17.10.2026
+
+CHG-CSRF-02: **IMPLEMENTED / PARTIALLY VERIFIED — BEFORE, formularz cross-origin / same-site**. Obie poniższe próby wykonał i potwierdził użytkownik 17.10.2026, nie Codex.
+
+- Pierwotny formularz z https://localhost:7443 wysłał POST do https://localhost:7028/api/notes: utworzono `SN-T-CSRF-B01`, API zwróciło JSON nowego rekordu i notatka była widoczna w UI. Główna karta przeszła do JSON.
+- Po dodaniu target=csrf-result-frame, ukrytego iframe i frame-src https://localhost:7028 wyłącznie do CSP serwera demonstracyjnego użytkownik potwierdził pozostanie na stronie demonstracyjnej, utworzenie `SN-T-CSRF-B02`, widoczność w UI i nowy rekord w MariaDB.
+
+Nie udokumentowano dokładnych kodów HTTP ani rzeczywistych nagłówków tych prób; nie dopisujemy ich. Nie zgłoszono konkretnego komunikatu blokady iframe ani niezależnego pomiaru cookies. Strona demonstracyjna nie odczytuje odpowiedzi API; zapis potwierdzono niezależnie. Frame-ancestors none i X-Frame-Options DENY SecureNotes pozostają bez zmian: ewentualna blokada wyświetlenia odpowiedzi w ramce nie oznacza automatycznie odrzucenia POST.
+
+Oba przebiegi należą do **T-CSRF-B01 — PARTIAL — BEFORE**. Nazwa notatki SN-T-CSRF-B02 jest znacznikiem danych, a nie wykonaniem scenariusza T-CSRF-B02 (formularz bez uwierzytelnienia). T-CSRF-B02 i T-CSRF-B03 nadal NOT RUN. W całej serii jest **6 PARTIAL — BEFORE / 9 NOT RUN**; wcześniejsze obserwacje XSS i JSON pozostają zachowane, bez pełnego PASS dla porównań z AFTER.
+
+Cross-origin localhost:7443 → localhost:7028: potwierdzony przez użytkownika. Same-site: oba originy to HTTPS localhost, różnią się portem. Obejście SameSite=Strict: nieudowodnione. Atak z niezależnej domeny oraz porównanie AFTER: nieprzetestowane. Nie zmieniano JWT, cookies, SameSite, CORS ani CSP SecureNotes w ramach demonstracji. Pozostałe chronione operacje zachowują Antiforgery. Obie zmiany XSS i CHG-CSRF-01 pozostają wdrożone i częściowo zweryfikowane przez użytkownika w dotychczasowym zakresie.
+
+Screenshoty są zgłoszone w rozmowie; fizyczna archiwizacja niepotwierdzona. Nie nadano rzeczywistych nazw, ścieżek ani ID dowodów. Przed publikacją ukryć cookies/tokeny, identyfikatory użytkowników i niepotrzebne dane phpMyAdmin. Uzupełnić rzeczywiste metadane prób i pełny payload XSS; nie przypisywać przyszłego SHA commita wstecz wcześniejszym uruchomieniom. Porównania z AFTER pozostają planem próby generalnej na końcu projektu, nie zadaniem 06F.
+
+Odtworzenie po osobnym zleceniu: uruchomić BEFORE przez start-before na securenotes_before_lab, zalogować własne fikcyjne konto na HTTPS localhost:7028, w drugiej sesji uruchomić osobny serwer demonstracyjny na HTTPS localhost:7443. Otworzyć go jako główną kartę w tym samym profilu; nadać unikalny fikcyjny tytuł i świadomie wysłać natywny formularz URL-encoded do ukrytego iframe, bez JS/fetch/tokenu. Sprawdzić nowy zapis w UI/GET BEFORE i osobno w bazie przez uprawnionego użytkownika. Nie odczytywać odpowiedzi z originu demonstracyjnego, nie uznawać samego braku błędu za sukces. Zachować zanonimizowane dowody i usunąć wyłącznie własną notatkę przez prawidłowo uwierzytelnione UI z tokenem. Serwer loopback nie czyta ani nie loguje cookies, które mogą przyjść na 7443; nie uruchamiać proxy ani przechwytywania sesji.
+
+Starsze sekcje 06D/06C/06B poniżej opisują ówczesny stan przygotowania i wyniki, a nie aktualne statusy 06F. Codex w 06F nie uruchamiał aplikacji, serwerów, HTTP, SQL, migracji ani testów integracyjnych.
+
+## Aktualizacja 06C — CHG-CSRF-02
+
+**IMPLEMENTED / NOT TESTED.** Punkt wyjścia: `bf2b6421926f7979e7200009e40c7b7c6239a25e`, branch demo/security-before. W NotesController dodano tylko rozdzielenie formatów i adapter formularza, bez nowej ścieżki URL:
+
+- `POST /api/notes`, `Create`, linie 88–92: `[Consumes("application/json", "text/json", "application/*+json")]` i dotychczasowy `[FromBody] CreateNoteRequest`.
+- Ten sam POST, `CreateFromForm`, linie 129–136: `[Consumes("application/x-www-form-urlencoded")]`, `[FromForm] CreateNoteRequest`, pola title/content. Akcja zwraca `Create(request, cancellationToken)`.
+
+Rozłączne typy w Consumes pozwalają mechanizmowi wyboru akcji MVC wybrać odpowiedni POST na podstawie Content-Type. Nie dodano innego routingu. JSON zachowuje także text/json i typy z sufiksem +json; formularz nie przechwytuje JSON. To ocena statyczna — rzeczywisty routing, statusy i wiązanie rekordu wymagają testów HTTP. Typy spoza zadeklarowanych zestawów nie otrzymują nowej obsługi.
+
+Obie akcje podlegają klasowemu [Authorize]; nie mają ValidateAntiForgeryToken. Bezpośrednia delegacja do Create współdzieli pobranie właściciela z claims, kontrole danych, NoteService.CreateAsync, zapis i obsługę ArgumentException oraz CreatedAtAction(nameof(GetById), new { id = note.Id }, note). Oczekiwana odpowiedź to 201 z Location prowadzącym do GetById; nie jest to wykonany pomiar. Wywołanie metody C# nie uruchamia ponownie routingu, model binding ani filtrów MVC: te dotyczą wybranej akcji formularza. [ApiController] i walidacja modelu pozostają aktywne. DTO jest rekordem CreateNoteRequest(Title, Content); domena nadal odrzuca pusty/biały tytuł, tytuł ponad 150 znaków, null treści oraz treść ponad 10000 znaków.
+
+Ryzyko: zwykły formularz może utworzyć notatkę w uwierzytelnionej sesji bez tokenu żądania. Nie potwierdzono jeszcze ataku. JWT, HttpOnly/Secure/SameSite=Strict, CORS, PUT/DELETE, register/login/logout i ich Antiforgery pozostają bez zmian. Obie zmiany Stored XSS i CHG-CSRF-01 zachowano. Docelowa demonstracja z https://localhost:7443 do https://localhost:7028 jest cross-origin, ale same-site. Port nie izoluje cookies; standardowa nawigacja formularza nie wymaga preflight jak fetch JSON. Przesłanie cookie, uwierzytelnienie i zapis wymagają pomiaru. Nie jest to dowód obejścia SameSite ani ataku z niezależnej domeny cross-site. Lokalny serwer demonstracyjny może otrzymać Auth przy otwarciu strony i musi być kontrolowany, ograniczony do localhost, bez zapisywania/publikowania nagłówków Cookie.
+
+Statusy scenariuszy pozostają bez zmian: 5 PARTIAL — BEFORE (T-XSS-02/04, T-CSRF-A01/A02/A03), 10 NOT RUN, w tym T-CSRF-B01/B02/B03 i T-REG-04. W 06C nie uruchamiano aplikacji, HTTP, SQL, migracji ani testów integracyjnych. Nie utworzono HTML/serwera demonstracyjnego. Kontroler skompilowano odrębnie lokalnym kompilatorem C# z referencjami .NET/ASP.NET Core 8 i istniejącą biblioteką Application; wynik PASS, artefakty poza repozytorium. To kontrola kompilowalności, nie test integracji.
+
+Poniższe wcześniejsze wpisy opisują historię lub wcześniejszy plan; aktualny status CHG-CSRF-02 określa sekcja 06C.
+
 ## Wyniki użytkownika 06B — 17.10.2026
 
 **CHG-CSRF-01 — IMPLEMENTED / PARTIALLY VERIFIED (BEFORE, JSON).** Użytkownik, nie Codex, przeprowadził ręczne próby na laboratoryjnym BEFORE:
@@ -81,9 +117,9 @@ Baza: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Aktualizacja 17.10.2026, etap 
 
 ## CHG-CSRF-02 — laboratoryjna obsługa formularza
 
-- **Plik/metoda:** `SecureNotes.API/Controllers/NotesController.cs`, nowa planowana akcja `CreateFromForm` obok `Create`, obecny obszar linii 88–127.
+- **Plik/metoda:** `SecureNotes.API/Controllers/NotesController.cs`: Consumes JSON w linii 89, akcja `CreateFromForm` z atrybutami w liniach 129–136 (06C).
 - **AFTER — VERIFIED:** istnieje tylko tworzenie z `[FromBody]`; brak akcji `[FromForm]`.
-- **BEFORE — PLANNED:** dodać mały adapter `[FromForm] CreateNoteRequest` pod tym samym `POST /api/notes`, bez Antiforgery. Rozdzielić akcje przez `[Consumes]`, zachowując dotychczasowe typy JSON, także odpowiednie `+json`. Adapter deleguje do istniejącej logiki tworzenia. Nazwa nowej metody jest propozycją, nie istniejącym symbolem.
+- **BEFORE — IMPLEMENTED / PARTIALLY VERIFIED (06F, relacja użytkownika):** dodano `CreateFromForm` z `[FromForm] CreateNoteRequest` pod tym samym `POST /api/notes`, bez Antiforgery. Rozłączne `[Consumes]` rozdzielają JSON i URL-encoded; zachowano także text/json i application/*+json. Adapter zwraca wywołanie istniejącej metody Create. Użytkownik potwierdził zapis przez formularz cross-origin / same-site w dwóch wariantach; kody HTTP/nagłówki i porównanie AFTER pozostają nieudokumentowane.
 - **Uzasadnienie:** standardowy formularz URL-encoded nie wysyła JSON, a cross-origin JSON wymaga preflight. Adapter zapewnia wykonalny model bez osłabiania cookies i CORS.
 - **Wpływ:** nowa, jawnie laboratoryjna powierzchnia ataku. Nadal obowiązuje `[Authorize]`, właściciel z claims i walidacja domeny. Nie przyjmujemy `UserId` od klienta.
 - **Testy:** T-CSRF-B01, T-CSRF-B02, T-CSRF-B03, T-CORS-01, T-REG-01, T-REG-03.

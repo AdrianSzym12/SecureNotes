@@ -86,6 +86,7 @@ namespace SecureNotes.API.Controllers
         }
 
         [HttpPost]
+        [Consumes("application/json", "text/json", "application/*+json")]
         public async Task<ActionResult<NoteResponse>> Create(
             [FromBody] CreateNoteRequest request,
             CancellationToken cancellationToken)
@@ -123,6 +124,15 @@ namespace SecureNotes.API.Controllers
                     Message = "Invalid note data."
                 });
             }
+        }
+
+        [HttpPost]
+        [Consumes("application/x-www-form-urlencoded")]
+        public Task<ActionResult<NoteResponse>> CreateFromForm(
+            [FromForm] CreateNoteRequest request,
+            CancellationToken cancellationToken)
+        {
+            return Create(request, cancellationToken);
         }
 
         [HttpPut("{id:guid}")]

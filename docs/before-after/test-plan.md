@@ -1,6 +1,6 @@
 # Plan testów BEFORE/AFTER
 
-Procedury: PLANNED do dokończenia. Stan 06B, 17.10.2026: **T-XSS-02/04 oraz T-CSRF-A01/A02/A03 — PARTIAL — BEFORE; pozostałe 10 scenariuszy NOT RUN**. CHG-XSS-01/02 i CHG-CSRF-01 wdrożono; CHG-CSRF-02 pozostaje PLANNED. AFTER nie badano. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Faktyczne wyniki i ograniczenia: [results.md](results.md).
+Procedury: PLANNED do dokończenia. Stan 06F, 17.10.2026: **T-XSS-02/04, T-CSRF-A01/A02/A03 i T-CSRF-B01 — PARTIAL — BEFORE; pozostałe 9 scenariuszy NOT RUN**. Wszystkie cztery zmiany wdrożono i częściowo zweryfikowano przez użytkownika w opisanym zakresie BEFORE. AFTER nie badano; porównania wykonamy dopiero podczas końcowej próby generalnej. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Faktyczne wyniki i ograniczenia: [results.md](results.md).
 
 ## Zasady wspólne
 
@@ -126,7 +126,7 @@ W trzech testach użyć `POST /api/notes`, `Content-Type: application/json` i te
 
 ## Doświadczenie B — formularz w przeglądarce
 
-Poniższy formularz jest specyfikacją przyszłego artefaktu, nie gotową stroną atakującą w repozytorium:
+W etapie 06D przygotowano [lokalny serwer i stronę demonstracyjną](../../scripts/lab/csrf-demo/README.md); w 06F zapisano rzeczywiste wyniki użytkownika T-CSRF-B01 (PARTIAL — BEFORE), zarówno z nawigacją głównej karty, jak i ukrytego iframe. Aktualny formularz ma widoczne pola title/content, target=csrf-result-frame oraz świadomy przycisk, bez JavaScript i tokenu. Poniższy przykład pozostaje specyfikacją pierwotnego żądania, nie dokładnym protokołem ani bieżącym HTML:
 
 ```html
 <form method="post" action="https://localhost:7028/api/notes"
@@ -139,9 +139,11 @@ Poniższy formularz jest specyfikacją przyszłego artefaktu, nie gotową stron�
 
 ### T-CSRF-B01 — inny origin, ten sam site (główny)
 
+**Stan 06F: PARTIAL — BEFORE.** Użytkownik 17.10.2026 potwierdził `SN-T-CSRF-B01` (JSON i UI) oraz wariant iframe z `SN-T-CSRF-B02` (pozostanie na stronie, UI i rekord MariaDB). To dwa przebiegi B01, nie wykonanie T-CSRF-B02. Dokładnych kodów HTTP/nagłówków nie udokumentowano. AFTER nie badano; pełnego PASS nie nadano. Ewentualna blokada wyświetlenia w ramce nie dowodzi odrzucenia POST. Szczegóły: [results.md](results.md).
+
 1. **Cel:** wykazać faktyczny zapis przez przeglądarkę z drugiego originu bez tokenu.
 2. **Warunki:** aplikacja HTTPS na 7028, kontrolowana strona HTTPS na 7443, ten sam host `localhost`, zaufane certyfikaty, konto A zalogowane; BEFORE ma CHG-CSRF-01/02.
-3. **Kroki:** zapisać listę notatek; otworzyć stronę 7443 jako najwyższy dokument; włączyć Preserve log; wysłać formularz w tej samej karcie; zarejestrować POST; wrócić do aplikacji i wykonać nowy GET. Powtórzyć z AFTER i jego własną sesją.
+3. **Kroki do odtworzenia/dokończenia:** zapisać listę notatek; otworzyć stronę 7443 jako najwyższy dokument; włączyć Preserve log; świadomie wysłać formularz do ukrytego iframe (historycznie: głównej karty); zarejestrować POST; sprawdzić zapis w aplikacji nowym GET. Powtórzenie z AFTER i jego własną sesją pozostaje na końcową próbę generalną.
 4. **Dane:** formularz powyżej; brak tokenu i brak nagłówka Authorization, uwierzytelnienie wyłącznie automatycznym cookie.
 5. **BEFORE:** oczekiwane 201 i notatka właściciela A.
 6. **AFTER:** brak zapisu; status i przyczyna wymagają obserwacji. Możliwy jest błąd formatu lub Antiforgery; nie zakładamy izolowanej blokady CSRF.
