@@ -2,6 +2,16 @@
 
 Stan dokumentu 06F: deklaracje kodu i przygotowanie bazy zweryfikowano odczytowo lub podczas wcześniejszego 04A; działanie AFTER (03B), BEFORE (04D) oraz demonstracje XSS/CSRF potwierdził użytkownik w opisanym zakresie. Cztery zmiany są wdrożone i częściowo zweryfikowane; wyniki serii to 6 PARTIAL — BEFORE / 9 NOT RUN. AFTER nie badano w tej serii. Bazowy commit: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Poniższe datowane sekcje zachowują historię przygotowania.
 
+## Warunki próby generalnej 07A — PLANNED
+
+Plan nie uruchamia żadnej usługi. Kolejność i szczegółowe warunki: [test-plan.md](test-plan.md#próba-generalna-07a--plan-bez-wykonania). BEFORE i AFTER używają kolejno HTTPS localhost:7028; osobne profile A/B dla każdego wariantu i profil ANON. Po bloku wylogować się, zatrzymać aplikację i demo, zamknąć karty, potwierdzić wolne porty, zakończyć sesję z procesowymi Api__* BEFORE i uruchomić AFTER z jego dotychczasowej czystej sesji/konfiguracji. Zmiana portu nie izoluje cookies. Nie przenosić tokenów ani konfiguracji User Secrets.
+
+Przed przyszłym startem potwierdzić docelowe bazy (BEFORE securenotes_before_lab, AFTER securenotes_db), zgodę na fikcyjne dane AFTER i skutki istniejącego MigrateAsync w Development. Nie uruchamiać testów automatycznych na securenotes_test_db ani resetów/migracji ręcznych. Dane prezentacyjne sprzątać tylko po konkretnych ID i własności, nigdy zbiorczo z istniejącej bazy AFTER.
+
+Ograniczenia z kodu: bieżący demo odrzuca Host 127.0.0.1 i ma CSP default-src none bez connect-src. Nie obsługuje więc bezpośrednio odpowiednio T-CSRF-B03 i pomiaru preflight T-CORS-01. Przed ich wykonaniem potrzebne jest osobno zatwierdzone lokalne stanowisko diagnostyczne poza kodem obu aplikacji: certyfikat IP SAN/host IP dla B03, origin localhost:7443 z dopuszczonym połączeniem do 7028 dla CORS. Port 7443 zajmuje tylko jeden serwer naraz. Nie zmieniać aktualnego demo, cookies ani CSP SecureNotes; nie wyłączać CSP w przeglądarce. W 07A nie tworzyć hostów, certyfikatów ani plików demonstracyjnych. Bez spełnionych warunków pozostawić NOT RUN z przyczyną, a nie dowód SameSite/CORS.
+
+T-XSS-04 jest pomiarem checkpointu `9c825ad8d87a63f1134bbfc1e0f64a9b57ea6c11`, nie docelowego BEFORE. Wykorzystać prawdziwy zachowany materiał; odtworzenie w oddzielnym worktree wymaga odrębnego przygotowania danych/startu i zatwierdzenia, ponieważ start-before nie obsługuje detached HEAD. Nie cofać żadnego z dwóch docelowych worktree. Bieżące wyniki nadal 6 PARTIAL — BEFORE / 9 NOT RUN.
+
 ## Zakończenie implementacji CSRF — 06F, 17.10.2026
 
 CHG-CSRF-02: **IMPLEMENTED / PARTIALLY VERIFIED — BEFORE, formularz cross-origin / same-site**. Obie poniższe próby wykonał i potwierdził użytkownik 17.10.2026, nie Codex.

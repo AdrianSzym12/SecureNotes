@@ -1,6 +1,16 @@
 # Plan prezentacji i demonstracji
 
-Status: `PLANNED`, wszystkie nowe testy `NOT RUN`. Planowany czas: **11 minut**, z tolerancją 1 minuty w zakresie 10–12 minut. Nie przypisujemy jeszcze zadań członkom zespołu. Baza projektu: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
+Status 07A: plan próby generalnej i prezentacji `PLANNED`, bez nowych wykonań. Zachowano dotychczasowe 6 PARTIAL — BEFORE / 9 NOT RUN; AFTER nie testowano. Planowany czas prezentacji: **11 minut**, z tolerancją 1 minuty w zakresie 10–12 minut. Nie przypisujemy jeszcze zadań członkom zespołu. Baza projektu: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
+
+## Próba generalna 07A a pokaz na zaliczeniu
+
+Pełna [macierz 15 testów i kolejność blokami](test-plan.md#próba-generalna-07a--plan-bez-wykonania) określa konta, dane, dowody, kryteria i sprzątanie. Najpierw cały docelowy BEFORE na 7028, następnie jedno przełączenie do AFTER na tym samym porcie z nowymi profilami/tokenami; bez zmian kodu i bez współdzielenia sesji. BEFORE: `6d1eddd149fb66b4cde2699da5f5a5399cbc1e43`, AFTER: `21be7bb6aadd69c729250eb5d5248cabb114de04`; przy wykonaniu zapisać rzeczywiste SHA/diff. T-XSS-04 ma osobny checkpoint, a B03 i CORS-01 wymagają przygotowanego stanowiska diagnostycznego. Nie maskować braków warunków jako pozytywnego wyniku.
+
+Próba generalna to około 105–145 min dla głównej serii plus 30–60 min bloków szczególnych po ich przygotowaniu, a nie 11 minut. W 11-minutowym pokazie rekomendowane są jeden aktywny BEFORE i krótkie demonstracje XSS/formularza; porównania AFTER oraz pozostałe z sześciu głównych testów pokazać na wcześniej zarejestrowanych prawdziwych materiałach z datą, SHA i ID próby. Materiał oznaczyć jawnie jako nagranie/screenshot, nie test na żywo. Nie przełączać aplikacji przy każdym slajdzie. Jeżeli potrzeba obu wariantów na żywo, najpierw wspólny blok BEFORE, jedno przełączenie i wspólny blok AFTER — taką alternatywę trzeba osobno zmierzyć, nie obiecywać obecnego limitu czasu.
+
+Tabela czasu poniżej pozostaje szkieletem narracji: przywołanie AFTER w sekcji XSS/CSRF oznacza zaplanowany dowód, nie równoczesne uruchomienie na porcie 7028. Nie odtwarzać T-XSS-04 przez cofanie docelowego BEFORE; użyć rzeczywistego materiału checkpointu, a przy jego braku powiedzieć o PARTIAL. Nie wykonywać B03/CORS-01 na żywo z nieprzygotowanym hostem. Przy braku materiałów AFTER pokazać oczekiwania i ograniczenia, bez deklaracji potwierdzonej różnicy.
+
+Minimalny zestaw do pokazania po próbie: payload i GET/DOM XSS, efekt BEFORE i tekst AFTER; A01 jako kontrola, A02/A03 z rozstrzygniętą przyczyną odmowy AFTER; formularz 7443 → 7028 i zapis BEFORE, odmowa AFTER z faktyczną przyczyną; flagi cookies oraz CSP dokumentów. Formularz iframe nie odczytuje odpowiedzi, a blokada jej wyświetlenia nie dowodzi odrzucenia POST. To cross-origin / same-site, bez udowodnionego obejścia Strict. Identyfikatory i nazwy dowodów nadać dopiero po archiwizacji; screenshoty z rozmowy nie są jeszcze zarchiwizowanymi artefaktami.
 
 ## Slajdy i czas
 
