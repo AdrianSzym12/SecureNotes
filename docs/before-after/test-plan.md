@@ -1,6 +1,6 @@
 # Plan testów BEFORE/AFTER
 
-Procedury: `PLANNED`. Aktualizacja 17.10.2026, 05D: **T-XSS-02 i T-XSS-04 — PARTIAL, tylko wskazane obserwacje BEFORE użytkownika; pozostałe 13 scenariuszy NOT RUN**. Wykonanie JavaScript z zapisanej notatki w BEFORE potwierdził użytkownik w 05D; pełnego porównania AFTER nie wykonano. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Oczekiwania dla docelowego BEFORE dotyczą wersji po właściwych zmianach; obecnie wdrożono CHG-XSS-01 i CHG-XSS-02. Szczegóły i ograniczenia są w [results.md](results.md).
+Procedury: PLANNED do dokończenia. Stan 06B, 17.10.2026: **T-XSS-02/04 oraz T-CSRF-A01/A02/A03 — PARTIAL — BEFORE; pozostałe 10 scenariuszy NOT RUN**. CHG-XSS-01/02 i CHG-CSRF-01 wdrożono; CHG-CSRF-02 pozostaje PLANNED. AFTER nie badano. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Faktyczne wyniki i ograniczenia: [results.md](results.md).
 
 ## Zasady wspólne
 
@@ -84,6 +84,8 @@ W trzech testach użyć `POST /api/notes`, `Content-Type: application/json` i te
 
 ### T-CSRF-A01 — poprawny token (główny)
 
+**Stan 06B: PARTIAL — BEFORE.** 17.10.2026: UI z X-CSRF-TOKEN, HTTP 201 i rekord CSRF-TEST-VALID w MariaDB potwierdzone przez użytkownika. Nie wykonano porównania AFTER; pełnego PASS nie nadano. Nazwy rzeczywistych notatek różnią się od planowanych znaczników poniżej; nie zmieniamy procedury po fakcie. Szczegóły i ograniczenia: [results.md](results.md).
+
 1. **Cel:** potwierdzić poprawność ścieżki pozytywnej i warunków porównania.
 2. **Warunki:** konto A zalogowane, świeży token po logowaniu, poprawny JSON, BEFORE z CHG-CSRF-01.
 3. **Kroki:** pobrać token bez wypisywania; wysłać bezpośredni fetch tego samego originu z cookie i nagłówkiem `X-CSRF-TOKEN`; odczytać notatkę po ID. Powtórzyć w AFTER.
@@ -96,6 +98,8 @@ W trzech testach użyć `POST /api/notes`, `Content-Type: application/json` i te
 
 ### T-CSRF-A02 — błędny token (główny)
 
+**Stan 06B: PARTIAL — BEFORE.** 17.10.2026: Uwierzytelniony JSON z błędnym tokenem zapisał CSRF-TEST-INVALID-1792246089074 w securenotes_before_lab.notes według użytkownika. Kod HTTP udanej próby nieudokumentowany. Nie wykonano porównania AFTER; pełnego PASS nie nadano. Nazwy rzeczywistych notatek różnią się od planowanych znaczników poniżej; nie zmieniamy procedury po fakcie. Wcześniejsze 401 miały nieustaloną przyczynę i nie dowodzą walidacji CSRF. Szczegóły i ograniczenia: [results.md](results.md).
+
 1. **Cel:** odizolować reakcję na niepoprawny token żądania.
 2. **Warunki:** jak A01; poprawna sesja i cookie Antiforgery pozostają bez zmian.
 3. **Kroki:** wysłać poprawny JSON z `X-CSRF-TOKEN: invalid-lab-token`; sprawdzić status, źródło odrzucenia i listę danych przed/po; powtórzyć w AFTER.
@@ -107,6 +111,8 @@ W trzech testach użyć `POST /api/notes`, `Content-Type: application/json` i te
 9. **Przywrócenie:** usunąć ewentualną notatkę BEFORE; w AFTER potwierdzić, że nie ma danych do usunięcia.
 
 ### T-CSRF-A03 — brak tokenu (główny)
+
+**Stan 06B: PARTIAL — BEFORE.** 17.10.2026: Uwierzytelniony JSON bez nagłówka X-CSRF-TOKEN zapisał CSRF-TEST-MISSING-1792246089081 w securenotes_before_lab.notes według użytkownika. Kod HTTP udanej próby nieudokumentowany. Nie wykonano porównania AFTER; pełnego PASS nie nadano. Nazwy rzeczywistych notatek różnią się od planowanych znaczników poniżej; nie zmieniamy procedury po fakcie. Wcześniejsze 401 miały nieustaloną przyczynę i nie dowodzą walidacji CSRF. Szczegóły i ograniczenia: [results.md](results.md).
 
 1. **Cel:** odizolować brak tokenu żądania.
 2. **Warunki:** jak A01; cookie Antiforgery obecne, brak tokenu w nagłówku i formularzu.

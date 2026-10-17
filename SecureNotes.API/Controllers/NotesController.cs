@@ -86,7 +86,6 @@ namespace SecureNotes.API.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult<NoteResponse>> Create(
             [FromBody] CreateNoteRequest request,
             CancellationToken cancellationToken)

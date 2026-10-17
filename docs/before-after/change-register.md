@@ -1,5 +1,35 @@
 # Rejestr zmian BEFORE względem AFTER
 
+## Wyniki użytkownika 06B — 17.10.2026
+
+**CHG-CSRF-01 — IMPLEMENTED / PARTIALLY VERIFIED (BEFORE, JSON).** Użytkownik, nie Codex, przeprowadził ręczne próby na laboratoryjnym BEFORE:
+
+| Test | Rzeczywista obserwacja BEFORE | Status scenariusza |
+|---|---|---|
+| T-CSRF-A01 | Zwykły zapis przez UI; obecny X-CSRF-TOKEN, HTTP 201; rekord `CSRF-TEST-VALID` potwierdzony przez użytkownika w MariaDB | PARTIAL — BEFORE |
+| T-CSRF-A02 | Uwierzytelniony POST JSON /api/notes z nieprawidłowym X-CSRF-TOKEN; utworzono `CSRF-TEST-INVALID-1792246089074`, rekord potwierdzony przez użytkownika w securenotes_before_lab.notes; konkretny kod HTTP udanej próby nie został udokumentowany | PARTIAL — BEFORE |
+| T-CSRF-A03 | Uwierzytelniony POST JSON /api/notes bez nagłówka X-CSRF-TOKEN; utworzono `CSRF-TEST-MISSING-1792246089081`, rekord potwierdzony przez użytkownika w securenotes_before_lab.notes; konkretny kod HTTP udanej próby nie został udokumentowany | PARTIAL — BEFORE |
+
+Wcześniejsze ręczne próby A02/A03 zwróciły HTTP 401. Później GET /api/notes dał HTTP 200, a ponowione POST doprowadziły do zapisów opisanych wyżej. Nie ustalono jednoznacznej przyczyny wcześniejszych 401; nie interpretujemy ich jako odrzucenia przez Antiforgery ani nie przypisujemy kodu 200 z GET późniejszym POST. Przewidywane 201 z kodu akcji nie zastępuje pomiaru odpowiedzi A02/A03.
+
+Potwierdzono przyjmowanie uwierzytelnionego JSON mimo błędnego lub brakującego tokenu żądania. Nie przeprowadzono porównania AFTER, demonstracji formularza cross-origin ani ataku cross-site; nie wykazano obejścia JWT, SameSite ani CORS. CHG-CSRF-02 pozostaje PLANNED. Statusy całej serii: **5 PARTIAL — BEFORE** (T-XSS-02/04 i T-CSRF-A01/A02/A03), pozostałe **10 NOT RUN**. Historyczne wyniki XSS pozostają bez zmian. Nie nadajemy pełnego PASS scenariuszom obejmującym AFTER.
+
+Źródło: relacja użytkownika z 17.10.2026 i screenshoty dostępne według niego w rozmowie ChatGPT. Codex nie wykonywał prób ani nie sprawdzał rekordów SQL. Archiwizacja screenshotów niepotwierdzona; brak przypisanych rzeczywistych nazw plików, ścieżek i ID dowodów. Przed publikacją zrzutu phpMyAdmin ukryć identyfikatory użytkowników i inne niepotrzebne dane, a także wszelkie sekrety/cookies/tokeny. Nie uzupełniamy nieznanych treści notatek, wartości tokenów, czasów prób ani ID rekordów.
+
+Poniższe sekcje 06A i wcześniejsze zachowano jako historię. Kod 06B pozostaje dokładnie zmianą jednej linii z 06A.
+
+## Aktualizacja 06A — 17.10.2026
+
+**CHG-CSRF-01 — IMPLEMENTED / NOT TESTED.** W `SecureNotes.API/Controllers/NotesController.cs`, akcja `Create`, usunięto tylko `[ValidateAntiForgeryToken]` bezpośrednio po `[HttpPost]` (linia 89 w HEAD `138d02b5f3a6a1b0c3af19404caf3baee6dd6684`; po zmianie deklaracja Create zaczyna się w linii 89, parametr FromBody w 90). To nadal `POST /api/notes` z JSON `CreateNoteRequest(Title, Content)` i odpowiedzią `CreatedAtAction` (201). Nie dodano obsługi formularzy: **CHG-CSRF-02 — PLANNED**.
+
+Analiza aktualnego kodu: `Program.cs` rejestruje `AddControllersWithViews()` bez globalnych filtrów Antiforgery oraz `AddAntiforgery()` z nagłówkiem X-CSRF-TOKEN. Rejestracja usługi i konfiguracja cookie same nie wymuszają walidacji wszystkich akcji. Nie znaleziono AutoValidateAntiforgeryToken, globalnej konfiguracji filtrów, UseAntiforgery ani dodatkowych wywołań walidacji żądania. Lokalny atrybut akcji uruchamiał filtr MVC walidujący token przed wykonaniem Create; po usunięciu ten filtr nie jest do niej przypisany. Wydawanie pary tokenów przez GET /api/auth/csrf-token pozostaje bez zmian.
+
+Ryzyko: uwierzytelniony JSON może zostać zapisany bez poprawnego tokenu żądania. To hipoteza do pomiaru, nie potwierdzony wynik CSRF. `[Authorize]`, UseAuthentication/UseAuthorization i JWT z SecureNotes.Auth pozostają aktywne (walidacja podpisu, wystawcy, odbiorcy i czasu życia). Tożsamość właściciela nadal pochodzi z ClaimTypes.NameIdentifier; DTO nie przyjmuje UserId. Walidacja danych i odpowiedzi akcji pozostają bez zmian. Cookies zachowują HttpOnly, Secure i SameSite=Strict; nie zmieniono CORS (brak AddCors/UseCors). JSON z obcego originu nadal wymaga preflight; nie wykazano obejścia CORS, SameSite ani ataku cross-origin/cross-site. Brak JWT nadal uniemożliwia autoryzowany zapis.
+
+PUT i DELETE notatek oraz register/login/logout nadal mają ValidateAntiForgeryToken. CHG-XSS-01 i CHG-XSS-02 pozostają wdrożone bez zmian kodu; użytkownik potwierdził wykonanie JS w 05D, a pełna seria porównawcza nadal jest nieukończona. Statusy 15 scenariuszy bez zmian: T-XSS-02 i T-XSS-04 PARTIAL — BEFORE, pozostałe 13 NOT RUN. Historia wyników 05B/05D pozostaje nienaruszona. Nie uruchamiano aplikacji, testów, SQL ani migracji; brak git add/commit/push.
+
+Plan pomiaru: T-CSRF-A01 (poprawny token), T-CSRF-A02 (błędny token), T-CSRF-A03 (brak nagłówka); regresja T-CORS-01 i T-REG-02. Poniższe wcześniejsze sekcje 05D/05C/05B zachowują historyczny stan tych etapów.
+
 ## Wynik użytkownika 05D — 17.10.2026
 
 Użytkownik potwierdził rzeczywiste wykonanie JavaScript z zapisanej treści notatki (Stored XSS) na `https://localhost:7028/notes.html` po CHG-XSS-02. Payload używał elementu img i onerror; wyświetlony alert miał dokładnie treść:
@@ -41,9 +71,9 @@ Baza: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Aktualizacja 17.10.2026, etap 
 
 ## CHG-CSRF-01 — tworzenie JSON bez Antiforgery
 
-- **Plik/metoda:** `SecureNotes.API/Controllers/NotesController.cs`, `Create`, linia 89; `[FromBody]` w linii 91.
+- **Plik/metoda:** `SecureNotes.API/Controllers/NotesController.cs`, `Create`: usunięty atrybut w linii 89 HEAD 138d02b; obecnie deklaracja w 89, `[FromBody]` w 90.
 - **AFTER — VERIFIED:** `[Authorize]` na kontrolerze oraz `[ValidateAntiForgeryToken]` na akcji tworzenia.
-- **BEFORE — PLANNED:** usunąć walidację Antiforgery wyłącznie z tworzenia notatki JSON. Pozostawić ją dla PUT, DELETE i operacji logowania, rejestracji, wylogowania.
+- **BEFORE — IMPLEMENTED / PARTIALLY VERIFIED (06B, BEFORE JSON):** usunięto wyłącznie lokalny `[ValidateAntiForgeryToken]` z Create JSON. Pozostał dla PUT, DELETE i operacji logowania, rejestracji, wylogowania. Brak globalnego filtra wymuszającego walidację tej akcji; użytkownik potwierdził zapis z poprawnym, błędnym i brakującym tokenem. Kod 201 potwierdzono dla A01; kodów udanych A02/A03 nie udokumentowano. AFTER pozostaje do zbadania.
 - **Uzasadnienie:** umożliwienie porównania tego samego kontraktu JSON dla poprawnego, błędnego i brakującego tokenu.
 - **Wpływ:** brak walidacji tokenu przy tej operacji. Samo to nie zapewnia skuteczności formularza, ponieważ nadal obowiązuje format danych, uwierzytelnianie i polityki przeglądarki.
 - **Testy:** T-CSRF-A01, T-CSRF-A02, T-CSRF-A03, T-CORS-01, T-REG-02.

@@ -1,6 +1,6 @@
 # Wyniki i rejestr dowodów
 
-Stan na 17.10.2026, 05D. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Użytkownik potwierdził wykonanie Stored XSS w BEFORE po CHG-XSS-02. T-XSS-02 i T-XSS-04 mają PARTIAL — BEFORE; pozostałe 13 scenariuszy NOT RUN. Nie wykonano pełnego porównania AFTER. Codex nie uruchamiał aplikacji ani prób.
+Stan na 17.10.2026, 06B. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Wyniki użytkownika dotyczą BEFORE: Stored XSS (05D) i JSON bez walidacji tokenu Antiforgery (06B). T-XSS-02/04 i T-CSRF-A01/A02/A03 mają PARTIAL — BEFORE; pozostałe 10 scenariuszy NOT RUN. Nie badano AFTER. Codex nie wykonywał prób ani SQL.
 
 `NOT RUN` jest statusem wykonania, a nie wynikiem bezpieczeństwa. Po próbach zgodność oceniać jako zgodny/niezgodny/niejednoznaczny; skuteczność jako skuteczna/nieskuteczna/nieoceniona w danym zakresie. Wykrycie podatności w BEFORE może być zgodne z hipotezą, ale oznacza nieskuteczną kontrolę. Osobne protokoły dla BEFORE i AFTER muszą wskazywać rzeczywiście badany SHA.
 
@@ -12,9 +12,9 @@ Stan na 17.10.2026, 05D. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`.
 | T-XSS-02 | PARTIAL — BEFORE, HTML i wykonanie JS | HTML i wykonanie handlera po CHG-XSS-01/02 | Tekst, brak wykonania | BEFORE: strong w 05B; w 05D alert z zapisanego img/onerror, dokładna treść poniżej; AFTER: nie badano | Wykonanie JS w BEFORE zgodne; pełne porównanie nieocenione | W BEFORE potwierdzono wykonanie Stored XSS; AFTER nieocenione | Screenshoty w rozmowie według użytkownika; archiwizacja niepotwierdzona, bez ID | 17.10.2026, obserwacja użytkownika; niepełny protokół i pełny payload do uzupełnienia |
 | T-XSS-03 | NOT RUN | Ponowne wykonanie po GET | Ponownie tekst | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono | Brak | Dowód trwałości, nie ręczny DOM |
 | T-XSS-04 | PARTIAL — BEFORE | Etap pośredni: HTML, handler blokowany | Tekst, brak wykonania | BEFORE: img powstało, obraz 404, brak alertu, Console wskazała blokadę script-src-attr none; AFTER: nie badano | Część BEFORE zgodna z oczekiwaniem; pełne porównanie nieocenione | CSP skuteczna dla konkretnego demonstracyjnego inline handlera w tej próbie | Screenshoty zgłoszone przez użytkownika; archiwizacja niepotwierdzona, bez ID | 17.10.2026; inny nieszkodliwy payload niż bazowy przykład; zachować commit pośredni |
-| T-CSRF-A01 | NOT RUN | 201 i zapis | 201 i zapis | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono; kontrola pozytywna | Brak | Token właściwy dla sesji |
-| T-CSRF-A02 | NOT RUN | 201 i zapis | 400, brak zapisu | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono | Brak | Wymaga potwierdzenia przyczyny 400 |
-| T-CSRF-A03 | NOT RUN | 201 i zapis | 400, brak zapisu | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono | Brak | Cookie Csrf obecne, brak tokenu żądania |
+| T-CSRF-A01 | PARTIAL — BEFORE | 201 i zapis | 201 i zapis | BEFORE: UI, X-CSRF-TOKEN obecny, HTTP 201; rekord CSRF-TEST-VALID potwierdzony przez użytkownika w MariaDB; AFTER: nie badano | Część BEFORE zgodna; porównanie nieocenione | Kontrola pozytywna; sama nie dowodzi walidacji | Screenshoty w rozmowie, archiwizacja niepotwierdzona, bez ID | 17.10.2026, relacja użytkownika |
+| T-CSRF-A02 | PARTIAL — BEFORE | 201 i zapis | 400, brak zapisu | BEFORE: uwierzytelniony JSON z błędnym tokenem; zapis CSRF-TEST-INVALID-1792246089074 potwierdzony przez użytkownika w securenotes_before_lab.notes; kod HTTP udanej próby nieudokumentowany; AFTER: nie badano | Przyjęcie i zapis zgodne; dokładny status i AFTER nieocenione | Brak skutecznej kontroli tokenu na Create BEFORE dla tej próby | Screenshoty w rozmowie, archiwizacja niepotwierdzona, bez ID | Wcześniej 401 o nieustalonej przyczynie, nie wynik Antiforgery |
+| T-CSRF-A03 | PARTIAL — BEFORE | 201 i zapis | 400, brak zapisu | BEFORE: uwierzytelniony JSON bez X-CSRF-TOKEN; zapis CSRF-TEST-MISSING-1792246089081 potwierdzony przez użytkownika w securenotes_before_lab.notes; kod HTTP udanej próby nieudokumentowany; AFTER: nie badano | Przyjęcie i zapis zgodne; dokładny status i AFTER nieocenione | Brak skutecznej kontroli tokenu na Create BEFORE dla tej próby | Screenshoty w rozmowie, archiwizacja niepotwierdzona, bez ID | Wcześniej 401 o nieustalonej przyczynie, nie wynik Antiforgery |
 | T-CSRF-B01 | NOT RUN | Formularz tworzy notatkę | Brak zapisu; przyczyna do ustalenia | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono; brak izolacji Antiforgery | Brak | Asymetria obsługi formatów |
 | T-CSRF-B02 | NOT RUN | Brak zapisu bez uwierzytelnienia; hipoteza 401 | Brak zapisu; 401 dla właściwej ścieżki lub wcześniejsza odmowa routingu/formatu | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono | Brak | Priorytet: brak zapisu bez Auth; faktyczny kod i przyczyna dopiero po testach |
 | T-CSRF-B03 | NOT RUN | Strict: brak Auth i zapisu | Brak zapisu | Nie obserwowano / nie obserwowano | Nie oceniono | Nie oceniono | Brak | Diagnostyka powodu wykluczenia cookie |
@@ -53,6 +53,22 @@ Tekst jest humorystycznym elementem bezpiecznego eksperymentu. Nie znamy pełneg
 CHG-XSS-02: **IMPLEMENTED / PARTIALLY VERIFIED — wykonanie JS w BEFORE potwierdzone przez użytkownika**. T-XSS-02 pozostaje **PARTIAL — BEFORE**, teraz z potwierdzonym wykonaniem JS. Brak pełnego porównania AFTER i pozostałych danych protokołu nie pozwala nadać PASS całemu scenariuszowi. T-XSS-04 pozostaje **PARTIAL — BEFORE** z historycznym wynikiem blokady przy oryginalnej CSP w checkpointcie `9c825ad8d87a63f1134bbfc1e0f64a9b57ea6c11`. Pozostałe 13 scenariuszy nadal **NOT RUN**, w tym T-XSS-01/03 i T-REG-04: nie zgłoszono odrębnego porównania GET/content/ID, próby trwałości po ponownym pobraniu ani pełnego pomiaru nagłówków.
 
 Rzeczywiste nagłówki CSP pozostałych ścieżek, a także zachowanie AFTER wymagają osobnej weryfikacji. Ograniczenie wyjątku do dokładnego `/notes.html` oraz zachowanie pozostałych dyrektyw potwierdza analiza kodu, nie pomiar odpowiedzi HTTP. Nie wykazano dostarczenia payloadu innemu użytkownikowi ani przejęcia konta. Docelowy BEFORE zachowuje podatny renderer i wyjątek CSP; CHG-CSRF-01/02 nadal PLANNED.
+
+## Wyniki użytkownika 06B — 17.10.2026
+
+**CHG-CSRF-01 — IMPLEMENTED / PARTIALLY VERIFIED (BEFORE, JSON).** Użytkownik, nie Codex, przeprowadził ręczne próby na laboratoryjnym BEFORE:
+
+| Test | Rzeczywista obserwacja BEFORE | Status scenariusza |
+|---|---|---|
+| T-CSRF-A01 | Zwykły zapis przez UI; obecny X-CSRF-TOKEN, HTTP 201; rekord `CSRF-TEST-VALID` potwierdzony przez użytkownika w MariaDB | PARTIAL — BEFORE |
+| T-CSRF-A02 | Uwierzytelniony POST JSON /api/notes z nieprawidłowym X-CSRF-TOKEN; utworzono `CSRF-TEST-INVALID-1792246089074`, rekord potwierdzony przez użytkownika w securenotes_before_lab.notes; konkretny kod HTTP udanej próby nie został udokumentowany | PARTIAL — BEFORE |
+| T-CSRF-A03 | Uwierzytelniony POST JSON /api/notes bez nagłówka X-CSRF-TOKEN; utworzono `CSRF-TEST-MISSING-1792246089081`, rekord potwierdzony przez użytkownika w securenotes_before_lab.notes; konkretny kod HTTP udanej próby nie został udokumentowany | PARTIAL — BEFORE |
+
+Wcześniejsze ręczne próby A02/A03 zwróciły HTTP 401. Później GET /api/notes dał HTTP 200, a ponowione POST doprowadziły do zapisów opisanych wyżej. Nie ustalono jednoznacznej przyczyny wcześniejszych 401; nie interpretujemy ich jako odrzucenia przez Antiforgery ani nie przypisujemy kodu 200 z GET późniejszym POST. Przewidywane 201 z kodu akcji nie zastępuje pomiaru odpowiedzi A02/A03.
+
+Potwierdzono przyjmowanie uwierzytelnionego JSON mimo błędnego lub brakującego tokenu żądania. Nie przeprowadzono porównania AFTER, demonstracji formularza cross-origin ani ataku cross-site; nie wykazano obejścia JWT, SameSite ani CORS. CHG-CSRF-02 pozostaje PLANNED. Statusy całej serii: **5 PARTIAL — BEFORE** (T-XSS-02/04 i T-CSRF-A01/A02/A03), pozostałe **10 NOT RUN**. Historyczne wyniki XSS pozostają bez zmian. Nie nadajemy pełnego PASS scenariuszom obejmującym AFTER.
+
+Źródło: relacja użytkownika z 17.10.2026 i screenshoty dostępne według niego w rozmowie ChatGPT. Codex nie wykonywał prób ani nie sprawdzał rekordów SQL. Archiwizacja screenshotów niepotwierdzona; brak przypisanych rzeczywistych nazw plików, ścieżek i ID dowodów. Przed publikacją zrzutu phpMyAdmin ukryć identyfikatory użytkowników i inne niepotrzebne dane, a także wszelkie sekrety/cookies/tokeny. Nie uzupełniamy nieznanych treści notatek, wartości tokenów, czasów prób ani ID rekordów.
 
 ## Indeks dowodów i stan archiwizacji
 
