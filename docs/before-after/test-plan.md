@@ -1,6 +1,6 @@
 # Plan testów BEFORE/AFTER
 
-Plan: `PLANNED`. **Wszystkie 15 scenariuszy: NOT RUN.** Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Oczekiwania BEFORE dotyczą dopiero wersji po wskazanych zmianach, nie obecnej bazy.
+Procedury: `PLANNED`. Aktualizacja 17.10.2026, 05B: **T-XSS-02 i T-XSS-04 — PARTIAL, tylko wskazane obserwacje BEFORE użytkownika; pozostałe 13 scenariuszy NOT RUN**. Nie zaliczono pełnego porównania ani wykonania JavaScript. Bazowy SHA: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Oczekiwania dla docelowego BEFORE dotyczą wersji po właściwych zmianach; obecnie wdrożono tylko CHG-XSS-01. Szczegóły i ograniczenia są w [results.md](results.md).
 
 ## Zasady wspólne
 
@@ -40,6 +40,8 @@ Potwierdzić, że adres obrazu nie istnieje. Payload ustawia lokalny atrybut DOM
 
 ### T-XSS-02 — interpretacja i wykonanie (główny)
 
+**Stan 05B: PARTIAL.** Użytkownik potwierdził 17.10.2026 część interpretacji HTML w BEFORE przez zapis `<strong>DEMO-XSS-HTML</strong>` i pogrubiony wynik. Nie spełniono jeszcze warunku CHG-XSS-02 i nie potwierdzono wykonania JS ani AFTER, więc nie nadajemy PASS całemu testowi. Poniższa procedura i jej docelowe kryteria nie zostały zmienione po obserwacji.
+
 1. **Cel:** odróżnić interpretację HTML od wykonania JavaScript i porównać warianty.
 2. **Warunki:** notatka z payloadem zapisana; docelowe BEFORE ma CHG-XSS-01/02; AFTER pozostaje oryginalne. Przed próbą przeładować dokument, aby usunąć wcześniejszy znacznik DOM.
 3. **Kroki:** otworzyć `/notes.html`; zarejestrować CSP odpowiedzi dokumentu; obejrzeć DOM treści, alert i atrybut `data-sn-xss`; sprawdzić komunikaty CSP. Powtórzyć w drugim wariancie z tym samym payloadem.
@@ -63,6 +65,8 @@ Potwierdzić, że adres obrazu nie istnieje. Payload ustawia lokalny atrybut DOM
 9. **Przywrócenie:** usunąć własną notatkę i przeładować; zanotować zakończenie próby.
 
 ### T-XSS-04 — rola samej CSP (pomocniczy, etap pośredni)
+
+**Stan 05B: PARTIAL — część BEFORE zgodna.** Użytkownik 17.10.2026 użył lokalnego img z onerror alert('XSS DEMO'), opisanego dokładnie w [results.md](results.md). Potwierdził img, 404 obrazu, brak alertu i komunikat blokady script-src-attr none. To wariant nieszkodliwych danych wejściowych dla istniejącego scenariusza, nie nowy ID. Brak potwierdzonego AFTER i zarchiwizowanych materiałów; pełnego PASS nie przypisano. Zachować commit pośredni, a przy dokończeniu jawnie dokumentować faktyczny payload i porównanie.
 
 1. **Cel:** sprawdzić, czy oryginalna CSP blokuje handler mimo interpretacji HTML.
 2. **Warunki:** wyłącznie pośrednie BEFORE z CHG-XSS-01, jeszcze bez CHG-XSS-02: renderer `innerHTML` z oryginalną CSP. Koniecznie zachować pomiar i SHA tego stanu pośredniego przed dalszymi zmianami; dla niezatwierdzonych zmian sam SHA nie wystarcza i należy dodatkowo zachować dokładny diff. Nie zastępować pomiaru dowodem z docelowego BEFORE i nie cofać kodu AFTER.

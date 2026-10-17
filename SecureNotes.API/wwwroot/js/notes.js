@@ -202,7 +202,7 @@ function createNoteElement(note) {
     title.textContent = note.title;
 
     const content = document.createElement('p');
-    content.textContent = note.content;
+    content.innerHTML = note.content;
     content.classList.add('note-content');
 
     const createdAt = document.createElement('small');
