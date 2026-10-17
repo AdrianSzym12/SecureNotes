@@ -6,14 +6,14 @@ Wymagania: .NET 8 SDK, istniejący ważny i zaufany certyfikat developerski dla 
 
 ## Późniejsze uruchomienie
 
-Wyłącznie po osobnym zatwierdzeniu testów, w PowerShell z katalogu BEFORE:
+Pełne odtworzenie nowego komputera: [LAB-SETUP.md](../../../docs/before-after/LAB-SETUP.md). Użytkownik w 07A.2b potwierdził uruchomienie tego serwera skryptem i dostępność HTTPS 7443; Codex go nie uruchamiał. Wyłącznie po osobnym zatwierdzeniu testów, w drugim terminalu PowerShell z katalogu BEFORE:
 
 ```powershell
 dotnet dev-certs https --check --trust
-dotnet run --project .\scripts\lab\csrf-demo\CsrfDemo.csproj --no-launch-profile
+.\scripts\lab\start-csrf-demo.ps1
 ```
 
-Pierwsze polecenie tylko sprawdza certyfikat. Jeśli go brak, jest niezaufany lub wygasł, zatrzymać przygotowanie i zgłosić problem; instrukcja nie instaluje ani nie generuje certyfikatów. Kestrel UseHttps korzysta z istniejącego certyfikatu developerskiego i odmówi startu bez dostępnego certyfikatu HTTPS. Nie eksportować klucza, nie ignorować ostrzeżeń przeglądarki i nie osłabiać Secure cookies. Kod czyści odziedziczoną konfigurację aplikacji demonstracyjnej, więc nie używa konfiguracyjnych haseł, User Secrets ani alternatywnych endpointów. Certyfikat nadal pochodzi z mechanizmu developerskiego ASP.NET Core.
+Pierwsze polecenie tylko sprawdza certyfikat; przygotowanie na nowym komputerze opisuje LAB-SETUP. Launcher ustala projekt względem siebie, sprawdza .NET 8 i wywołuje istniejące `dotnet run --project <projekt> --no-launch-profile`, bez pytań i bez startu BEFORE. Jeśli certyfikatu brak, jest niezaufany lub wygasł, zatrzymać przygotowanie; launcher nie instaluje ani nie generuje certyfikatów. Kestrel UseHttps korzysta z istniejącego certyfikatu developerskiego. Nie eksportować klucza, nie ignorować ostrzeżeń przeglądarki i nie osłabiać Secure cookies. Kod czyści odziedziczoną konfigurację demonstracji, więc nie używa konfiguracyjnych haseł, User Secrets ani alternatywnych endpointów.
 
 Otworzyć ręcznie **https://localhost:7443/**. Logowanie serwera jest wyłączone, więc brak komunikatu „Now listening” jest oczekiwany. Zatrzymanie: Ctrl+C. Zwykły dotnet run może utworzyć lokalne bin/obj; kompilacja kontrolna etapu 06D kieruje artefakty poza repozytorium. Nie uruchamiać w sesji zawierającej niepotrzebne sekrety procesu.
 

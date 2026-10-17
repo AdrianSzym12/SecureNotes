@@ -2,6 +2,12 @@
 
 Użytkownik potwierdził w 04D rzeczywiste działanie laboratorium BEFORE na jednym Windows/PowerShell/MariaDB-XAMPP, w tym ponowny start po uproszczeniu skryptu. WhatIf bez zmian SQL i pobrania nowego hasła: PASS; setup konta i siedmiu praw do jednej bazy, bez DROP/GRANT OPTION i praw globalnych poza USAGE: PASS. Verify przed migracją: PASS dla .NET 8, dostępu, parametrów i grantów, oczekiwane NOT READY tabel. Pierwszy start z migracją InitialCreate, logowanie, zapis/odczyt i trwałość po restarcie: PASS. Uproszczony start: PASS — jeden maskowany monit, poprawny cel, ostrzeżenie, START BEFORE, HTTPS localhost:7028, Development i komunikat EF o aktualnej bazie. Są to potwierdzenia użytkownika, nie próby wykonane przez Codexa. Nie potwierdzono jeszcze drugiego komputera ani osobnej próby opcji -VerifyDatabase po uproszczeniu. Wszystkie 15 scenariuszy projektu nadal ma NOT RUN. Skrypty nie wdrażają podatności; BEFORE jest przeznaczone do kontrolowanej rekonstrukcji. Wariant docelowo podatny wolno uruchamiać wyłącznie lokalnie, na fikcyjnych danych.
 
+## Aktualny sposób uruchamiania — 07A.2b
+
+Samodzielna instrukcja dla nowego komputera, w tym GitHub, MariaDB, JWT/User Secrets, HTTPS i oddzielny AFTER: [LAB-SETUP.md](../../docs/before-after/LAB-SETUP.md). Użytkownik potwierdził pierwszy start BEFORE z monitem hasła, kolejny bez monitu, HTTPS 7028, bazę i aktualne migracje oraz start demo skryptem na 7443 i dostępność obu stron. To wyniki użytkownika na istniejącym stanowisku, nie odtworzenie drugiego komputera przez Codexa. Wyniki formalnych scenariuszy pozostają 6 PARTIAL — BEFORE / 9 NOT RUN. Powyższy opis 04D jest historyczny; bieżące launchery opisano poniżej.
+
+Codzienna obsługa: `.\scripts\lab\start-before.ps1` oraz, tylko do CSRF w drugim terminalu, `.\scripts\lab\start-csrf-demo.ps1`. Nie uruchamiają się wzajemnie. Setup i verify zachowują rolę konfiguracji początkowej oraz opcjonalnej diagnostyki.
+
 ## Co jest rozdzielone
 
 | Etap | Odpowiedzialność |
@@ -74,7 +80,9 @@ Przed startem sprawdź certyfikat poleceniem odczytowym `dotnet dev-certs https 
 .\scripts\lab\start-before.ps1
 ```
 
-Standardowy start pyta o hasło sn_before_lab **dokładnie raz**, maskowanym monitem aplikacji. Nie uruchamia verify-before.ps1 ani klienta MariaDB. Nadal sprawdza lokalizację projektu, branch demo/security-before, dostępność SDK i ASP.NET Core Runtime 8, lokalny profil HTTPS/Development i brak sprzecznych ustawień. Wyświetla sztywny cel 127.0.0.1:3306 / securenotes_before_lab / sn_before_lab, ostrzeżenie o migracjach i wymaga wpisania `START BEFORE` przy każdym starcie. Potwierdzenie nie jest dodatkowym monitem hasła.
+Standardowy start pyta o istniejące hasło sn_before_lab **tylko przy pierwszym lokalnym zapisie DPAPI**; kolejne starty odczytują je automatycznie. Nie wymaga `START BEFORE` i nie uruchamia verify-before.ps1 ani klienta MariaDB. Nadal sprawdza projekt, branch demo/security-before, SDK i ASP.NET Core Runtime 8, profil HTTPS/Development i brak sprzecznych ustawień. Wyświetla sztywny cel 127.0.0.1:3306 / securenotes_before_lab / sn_before_lab oraz ostrzeżenie o migracjach.
+
+Zapis `%LOCALAPPDATA%\SecureNotesLab\before-db-password.dpapi` jest poza repozytorium i chroniony Windows DPAPI dla konta/komputera. `start-before.ps1 -ResetStoredPassword` pozwala ponownie podać hasło i zastąpić lokalny zapis; nie zmienia konta/hasła MariaDB. Błędny/uszkodzony/niedostępny zapis powoduje zatrzymanie bez automatycznego nadpisania; puste hasło nie zastępuje poprawnego. Zapis z innego komputera nie jest mechanizmem przenoszenia poświadczeń. DPAPI nie usuwa potrzeby krótkotrwałego jawnego hasła w pamięci i środowisku procesu aplikacji.
 
 Opcjonalna pełna diagnostyka przed startem:
 
@@ -84,7 +92,7 @@ Opcjonalna pełna diagnostyka przed startem:
 .\scripts\lab\start-before.ps1 -VerifyDatabase -MySqlPath $mysqlClient
 ```
 
-Tylko `-VerifyDatabase` uruchamia istniejący verify-before.ps1, sprawdzający faktyczne konto, bazę, granty i schemat przed migracją. Ten tryb ma dodatkowe natywne monity uwierzytelniania; hasło aplikacji podaje się potem osobno maskowanym monitem. Parametr MySqlPath dotyczy tylko opcjonalnej diagnostyki. Verify pozostaje także niezależnym narzędziem, opisanym w punkcie 3. Bez przełącznika start potwierdza konfigurację procesu, ale nie sprawdza rzeczywistego połączenia SQL przed uruchomieniem aplikacji. Pełną kontrolę warto wykonać po zmianie środowiska lub w razie problemów, nie przy każdym zwykłym restarcie.
+Tylko `-VerifyDatabase` uruchamia istniejący verify-before.ps1, sprawdzający faktyczne konto, bazę, granty i schemat przed migracją. Ten tryb ma dodatkowe natywne monity uwierzytelniania; verify nie korzysta z DPAPI. Hasło do samej aplikacji pochodzi z lokalnego zapisu lub pierwszego maskowanego monitu. Parametr MySqlPath dotyczy tylko diagnostyki. Verify pozostaje niezależnym narzędziem. Bez przełącznika start potwierdza konfigurację procesu, ale nie sprawdza rzeczywistego połączenia SQL przed aplikacją. Pełną kontrolę wykonać po zmianie środowiska lub w razie problemów, nie przy każdym restarcie.
 
 Procesowe Api__Server=127.0.0.1, Api__Port=3306, Api__Database=securenotes_before_lab, Api__User=sn_before_lab i Api__Password nadpisują wspólny UserSecretsId bez jego edycji. Hasło w środowisku procesu jest tekstowe w pamięci i jest dziedziczone przez dotnet oraz jego procesy potomne; nie uruchamiaj w tym kontekście AFTER, nie wypisuj środowiska. Finally przywraca poprzednie pięć wartości po zakończeniu/błędzie. Przy wymuszonym zabiciu hosta nie ma gwarancji wykonania finally; użyj dedykowanej sesji i zamknij ją po pracy.
 
@@ -98,7 +106,7 @@ Po udanym starcie otwórz `https://localhost:7028/`, zarejestruj fikcyjne konto 
 
 Preferowana metoda terminala i VS Code to start-before.ps1. Samo dotnet run bez przygotowania procesu może odziedziczyć bazę AFTER ze wspólnych sekretów; nie jest bezpiecznym skrótem. Visual Studio 2022 już otwarte wcześniej **nie odziedziczy** zmiennych z dowolnej sesji PowerShell. Nie przepisuj hasła do launchSettings ani wspólnych User Secrets, aby uruchomić F5. Automatyczne migracje zależą od Development, nie od Visual Studio.
 
-Każdy start skryptem wymaga kontroli i potwierdzenia; setup nie resetuje niczego. Używaj osobnego profilu przeglądarki BEFORE, bo cookies localhost nie są izolowane portem. Po pracy wyloguj konto. Serwer demonstracyjny CSRF na 7443 nie jest częścią tych skryptów i nie jest jeszcze przygotowany.
+Start wykonuje kontrole bez potwierdzenia tekstowego; setup nadal ma własne potwierdzenia i nie resetuje istniejących danych. Używaj osobnego profilu BEFORE, bo cookies localhost nie są izolowane portem. Po pracy wyloguj konto. Przygotowany serwer demonstracyjny na 7443 uruchamia osobny `start-csrf-demo.ps1`; [instrukcja demo](csrf-demo/README.md). Nie ma dodatkowego wspólnego launchera ani skryptu zapisu hasła.
 
 ## Błędy i granice
 

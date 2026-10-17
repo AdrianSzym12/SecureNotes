@@ -2,6 +2,8 @@
 
 Dokumentacja projektu z przedmiotu **Bezpieczeństwo aplikacji internetowych**, stan na 17.10.2026 (06F). Temat karty projektu: P7 — Utwardzanie przeglądarki 2026 (Browser Hardening).
 
+Instrukcja odtworzenia po pobraniu z GitHuba: **[LAB-SETUP.md](LAB-SETUP.md)**. Obejmuje Windows/.NET/MariaDB, lokalne JWT/User Secrets i HTTPS, dwa launchery BEFORE/demo, DPAPI oraz oddzielną konfigurację AFTER. Nowe skrypty i instrukcja muszą zostać wcześniej opublikowane; nie zakładamy ich obecności na zdalnej gałęzi. Potwierdzenie działania launcherów na obecnym komputerze pochodzi od użytkownika, nie jest testem odtworzenia na nowym stanowisku ani zmianą wyników 15 scenariuszy.
+
 ## Cel i zakres
 
 Celem jest zbadanie jednej ścieżki Stored XSS w treści prywatnej notatki oraz CSRF przy tworzeniu notatki w lokalnym, autoryzowanym laboratorium. Badanie obejmuje rekonstrukcję podatności, porównanie z istniejącymi zabezpieczeniami i powtórzenie scenariuszy wobec wersji referencyjnej. Dozwolone są wyłącznie fikcyjne konta i dane oraz lokalne usługi. Cudze systemy, konta i dane pozostają poza zakresem.

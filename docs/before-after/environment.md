@@ -2,6 +2,14 @@
 
 Stan dokumentu 06F: deklaracje kodu i przygotowanie bazy zweryfikowano odczytowo lub podczas wcześniejszego 04A; działanie AFTER (03B), BEFORE (04D) oraz demonstracje XSS/CSRF potwierdził użytkownik w opisanym zakresie. Cztery zmiany są wdrożone i częściowo zweryfikowane; wyniki serii to 6 PARTIAL — BEFORE / 9 NOT RUN. AFTER nie badano w tej serii. Bazowy commit: `21be7bb6aadd69c729250eb5d5248cabb114de04`. Poniższe datowane sekcje zachowują historię przygotowania.
 
+## Odtworzenie i launchery — 07A.2b
+
+Samodzielna instrukcja dla nowego komputera: [LAB-SETUP.md](LAB-SETUP.md), w tym osobne bazy, konfiguracja Jwt przez lokalne User Secrets i HTTPS. Codzienne komendy z katalogu BEFORE: `scripts/lab/start-before.ps1` oraz w drugim terminalu `scripts/lab/start-csrf-demo.ps1`. Pierwszy zapisuje hasło istniejącego sn_before_lab przez DPAPI w LocalAppData poza repozytorium, kolejne starty odczytują je bez monitu; nie wymaga START BEFORE. ResetStoredPassword aktualizuje tylko zapis lokalny. VerifyDatabase zachowuje dodatkowe monity diagnostyki SQL. Nie zmieniono skryptów w etapie dokumentacyjnym.
+
+Użytkownik potwierdził pierwszy start z hasłem i kolejny bez hasła, dostępność BEFORE na HTTPS 7028, dostęp do securenotes_before_lab i aktualne migracje oraz uruchomienie demo skryptem na HTTPS 7443 i dostępność obu stron. To potwierdzenia użytkownika na obecnym komputerze; Codex nie uruchamiał aplikacji/HTTP/SQL i nie weryfikował obrazu/archiwizacji screenshotów. Nie zgłoszono osobnego testu resetu/uszkodzonego DPAPI, a odtworzenie na drugim komputerze i nowa procedura konfiguracji AFTER pozostają do weryfikacji. Wyniki 15 scenariuszy bez zmian: 6 PARTIAL — BEFORE / 9 NOT RUN.
+
+Oba projekty mają wspólny UserSecretsId; na nowym komputerze trzeba osobno skonfigurować Jwt:Issuer, Audience, ExpirationMinutes i SecretKey (minimum 32 bajty UTF-8). DPAPI nie zastępuje JWT/User Secrets. Zabezpieczone AFTER nadal korzysta z odrębnej bazy i własnej sesji; start-before nie służy do jego uruchamiania. Poniższe wcześniejsze sekcje zachowują stan i procedury tamtych etapów.
+
 ## Warunki próby generalnej 07A — PLANNED
 
 Plan nie uruchamia żadnej usługi. Kolejność i szczegółowe warunki: [test-plan.md](test-plan.md#próba-generalna-07a--plan-bez-wykonania). BEFORE i AFTER używają kolejno HTTPS localhost:7028; osobne profile A/B dla każdego wariantu i profil ANON. Po bloku wylogować się, zatrzymać aplikację i demo, zamknąć karty, potwierdzić wolne porty, zakończyć sesję z procesowymi Api__* BEFORE i uruchomić AFTER z jego dotychczasowej czystej sesji/konfiguracji. Zmiana portu nie izoluje cookies. Nie przenosić tokenów ani konfiguracji User Secrets.
